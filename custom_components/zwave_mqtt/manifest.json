@@ -1,0 +1,11 @@
+{
+	"domain": "zwave_mqtt",
+	"name": "ZWave over MQTT",
+	"config_flow": true,
+	"documentation": "https://www.home-assistant.io/integrations/zwave_mqtt",
+	"requirements": [],
+	"ssdp": [],
+	"homekit": {},
+	"dependencies": ["mqtt"],
+	"codeowners": ["@cgarwood"]
+}
