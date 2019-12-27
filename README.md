@@ -9,4 +9,7 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 
 ## Limitations
 - Currently only supports binary_sensor, sensor, and switch platforms
-- `switch` platform is currently _read-only_
+
+## Upstream Resources Used
+- [python-openzwave-mqtt](https://github.com/cgarwood/python-openzwave-mqtt) - Converts qt-openzwave MQTT messages to Python objects and events
+- [qt-openzwave](https://github.com/OpenZWave/qt-openzwave/tree/mqtt) - OpenZWave MQTT Daemon
