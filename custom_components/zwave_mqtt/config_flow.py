@@ -1,9 +1,7 @@
 """Config flow for zwave_mqtt integration."""
 import logging
 
-import voluptuous as vol
-
-from homeassistant import core, config_entries, exceptions
+from homeassistant import config_entries
 
 from .const import DOMAIN  # pylint:disable=unused-import
 

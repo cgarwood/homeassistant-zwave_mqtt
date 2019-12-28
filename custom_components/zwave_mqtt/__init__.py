@@ -106,7 +106,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                 )
 
             # Run discovery on it and see if any entities need created
-            # todo
             for schema in DISCOVERY_SCHEMAS:
                 if not check_node_schema(node, schema):
                     continue
