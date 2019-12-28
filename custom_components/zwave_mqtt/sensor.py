@@ -3,10 +3,10 @@
 import logging
 
 from homeassistant.components.sensor import DEVICE_CLASS_BATTERY
+from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .const import DOMAIN, DATA_NODES, DATA_VALUES, TOPIC_OPENZWAVE
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,22 +48,33 @@ class ZWaveSensor(ZWaveDeviceEntity):
 
     @property
     def state(self):
+        """Return state of the sensor."""
         return round(self._value.value, 2)
 
     @property
     def unit_of_measurement(self):
+        """Return unit of measurement the value is expressed in."""
+        if self._value.units == "C":
+            return TEMP_CELSIUS
+        if self._value.units == "F":
+            return TEMP_FAHRENHEIT
+
         return self._value.units
 
 
 class ZWaveListSensor(ZWaveDeviceEntity):
+    """Representation of a Z-Wave list sensor."""
+
     @property
     def state(self):
+        """Return the state of the sensor."""
         values = self._value.value["List"]
         selected = self._value.value["Selected"]
         match = self._find(values, "Label", selected)
         return values[match]["Value"]
 
     def _find(self, lst, key, value):
+        """Search list for a value."""
         for i, dic in enumerate(lst):
             if dic[key] == value:
                 return i
@@ -71,6 +82,9 @@ class ZWaveListSensor(ZWaveDeviceEntity):
 
 
 class ZWaveBatterySensor(ZWaveSensor):
+    """Representation of a Z-Wave battery sensor."""
+
     @property
     def device_class(self):
+        """Return the device class of the sensor."""
         return DEVICE_CLASS_BATTERY

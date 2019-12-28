@@ -1,3 +1,5 @@
+"""Map Z-Wave nodes and values to Home Assistant entities."""
+
 import logging
 
 from . import const

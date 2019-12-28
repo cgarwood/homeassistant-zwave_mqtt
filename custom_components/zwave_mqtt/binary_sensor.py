@@ -2,11 +2,10 @@
 
 import logging
 
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.components.binary_sensor import BinarySensorDevice
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .const import DOMAIN, DATA_NODES, DATA_VALUES, TOPIC_OPENZWAVE
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,17 +33,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     return True
 
 
-class ZWaveBinarySensor(ZWaveDeviceEntity):
+class ZWaveBinarySensor(ZWaveDeviceEntity, BinarySensorDevice):
     """Representation of a Z-Wave binary_sensor."""
 
     @property
     def is_on(self):
+        """Return if the sensor is on or off."""
         return self._value.value
-
-    @property
-    def state(self):
-        return STATE_ON if self.is_on else STATE_OFF
-
-    @property
-    def unit_of_measurement(self):
-        return self._value.units

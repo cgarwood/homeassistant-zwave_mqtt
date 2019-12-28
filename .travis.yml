@@ -1,0 +1,13 @@
+language: python
+python:
+  - 3.7
+before_install:
+  - python --version
+  - pip install -U pip
+install:
+  - pip install -r requirements_test_all.txt
+script:
+  - pre-commit install-hooks
+  - pre-commit run flake8 --all-files
+  - pre-commit run isort --all-files
+  - pre-commit run black --all-files

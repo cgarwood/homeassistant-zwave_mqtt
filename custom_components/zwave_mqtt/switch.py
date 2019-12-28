@@ -2,11 +2,11 @@
 
 import logging
 
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.components.switch import SwitchDevice
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .const import DOMAIN, DATA_NODES, DATA_VALUES, TOPIC_OPENZWAVE
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,22 +34,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     return True
 
 
-class ZWaveSwitch(ZWaveDeviceEntity):
+class ZWaveSwitch(ZWaveDeviceEntity, SwitchDevice):
     """Representation of a Z-Wave switch."""
 
     @property
-    def is_on(self):
-        """Return true if device is on."""
-        return self._value.value
-
-    @property
     def state(self):
+        """Return the state of the switch."""
         if self._value.value:
             return STATE_ON
         return STATE_OFF
 
-    async def async_turn_on(self):
+    async def async_turn_on(self, **kwargs):
+        """Turn the switch on."""
         self._value.send_value(True)
 
-    async def async_turn_off(self):
+    async def async_turn_off(self, **kwargs):
+        """Turn the switch off."""
         self._value.send_value(False)
