@@ -2,6 +2,7 @@
 
 import logging
 
+from homeassistant.components.sensor import DEVICE_CLASS_BATTERY
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
@@ -24,10 +25,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         """Add Z-Wave Sensor."""
         _value = value["primary"]
         _LOGGER.info("adding sensor from value: %s", _value.__dict__)
+
+        # Basic Sensor types
         if isinstance(_value.value, (float, int)):
             sensor = ZWaveSensor(_value)
         if isinstance(_value.value, dict):
             sensor = ZWaveListSensor(_value)
+
+        # Specific Sensor Types
+        if _value.command_class == "COMMAND_CLASS_BATTERY":
+            sensor = ZWaveBatterySensor(_value)
 
         async_add_entities([sensor])
 
@@ -62,3 +69,9 @@ class ZWaveListSensor(ZWaveDeviceEntity):
             if dic[key] == value:
                 return i
         return -1
+
+
+class ZWaveBatterySensor(ZWaveSensor):
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_BATTERY

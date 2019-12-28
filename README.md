@@ -1,4 +1,6 @@
 # Home Assistant Z-Wave over MQTT Integration (Pre-Release)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+
 This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-Wave network over MQTT.
 
 **This is an early beta/pre-release and there are still significant limitations**
@@ -9,6 +11,9 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 
 ## Limitations
 - Currently only supports binary_sensor, sensor, and switch platforms
+
+## Contributing
+Contributions are welcome! If you'd like to contribute, check the GitHub issues.
 
 ## Upstream Resources Used
 - [python-openzwave-mqtt](https://github.com/cgarwood/python-openzwave-mqtt) - Converts qt-openzwave MQTT messages to Python objects and events

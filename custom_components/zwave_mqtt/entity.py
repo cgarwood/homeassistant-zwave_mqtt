@@ -122,6 +122,15 @@ class ZWaveDeviceEntity(Entity):
         self.async_schedule_update_ha_state()
 
     @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._value.node.node_id)},
+            "name": f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}",
+            "manufacturer": self._value.node.node_manufacturer_name,
+            "model": self._value.node.node_product_name,
+        }
+
+    @property
     def name(self):
         return f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}: {self._value.label}"
 
