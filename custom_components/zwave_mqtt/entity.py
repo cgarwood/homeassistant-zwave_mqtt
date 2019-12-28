@@ -10,9 +10,9 @@ from homeassistant.helpers.dispatcher import (
 )
 from homeassistant.helpers.entity import Entity
 
+from . import const
 from .const import DOMAIN, PLATFORMS
 from .discovery import check_node_schema, check_value_schema
-from . import const
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,9 +106,11 @@ class ZWaveDeviceEntity(Entity):
     """Generic Entity Class for a Z-Wave Device."""
 
     def __init__(self, value):
+        """Initilize a generic Z-Wave device entity."""
         self._value = value
 
     async def async_added_to_hass(self):
+        """Call when entity is added."""
         async_dispatcher_connect(
             self.hass,
             f"zwave_value_updated_{self._value.value_id_key}",
@@ -123,6 +125,7 @@ class ZWaveDeviceEntity(Entity):
 
     @property
     def device_info(self):
+        """Return device information for the device registry."""
         return {
             "identifiers": {(DOMAIN, self._value.node.node_id)},
             "name": f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}",
@@ -132,12 +135,15 @@ class ZWaveDeviceEntity(Entity):
 
     @property
     def name(self):
+        """Return the name of the entity."""
         return f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}: {self._value.label}"
 
     @property
     def state(self):
+        """Return the state of the entity."""
         return self._value.value
 
     @property
     def unique_id(self):
+        """Return the unique_id of the entity."""
         return f"{self._value.node.id}-{self._value.value_id_key}"

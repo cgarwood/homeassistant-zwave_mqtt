@@ -3,7 +3,7 @@
 import logging
 
 from homeassistant.components.switch import SwitchDevice
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
@@ -45,7 +45,9 @@ class ZWaveSwitch(ZWaveDeviceEntity, SwitchDevice):
         return STATE_OFF
 
     async def async_turn_on(self, **kwargs):
+        """Turn the switch on."""
         self._value.send_value(True)
 
     async def async_turn_off(self, **kwargs):
+        """Turn the switch off."""
         self._value.send_value(False)

@@ -1,32 +1,26 @@
 """The zwave_mqtt integration."""
 import asyncio
-import copy
-import logging
 import json
+import logging
 
-import voluptuous as vol
-
-from openzwavemqtt import OZWOptions, OZWManager, command_classes
+from openzwavemqtt import OZWManager, OZWOptions
 from openzwavemqtt.const import (
-    EVENT_INSTANCE_STATISTICS_CHANGED,
-    EVENT_VALUE_CHANGED,
-    EVENT_VALUE_ADDED,
     EVENT_NODE_ADDED,
     EVENT_NODE_CHANGED,
+    EVENT_VALUE_ADDED,
+    EVENT_VALUE_CHANGED,
 )
+import voluptuous as vol
 
-from homeassistant.core import callback, HomeAssistant
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.components import mqtt
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
-from homeassistant.helpers.dispatcher import (
-    async_dispatcher_connect,
-    async_dispatcher_send,
-)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import DOMAIN, DATA_NODES, DATA_VALUES, TOPIC_OPENZWAVE, PLATFORMS
 from . import const
-from .discovery import check_node_schema, check_value_schema, DISCOVERY_SCHEMAS
+from .const import DATA_NODES, DATA_VALUES, DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
+from .discovery import DISCOVERY_SCHEMAS, check_node_schema, check_value_schema
 from .entity import ZWaveDeviceEntityValues
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,14 +77,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         node_id = value.node.id
         key = node_id
 
-        if not key in hass.data[DOMAIN][DATA_VALUES]:
+        if key not in hass.data[DOMAIN][DATA_VALUES]:
             _LOGGER.debug(
                 "got value changed but node hasnt been created yet. node %s", node_id
             )
             return
 
         data_values = hass.data[DOMAIN][DATA_VALUES][key]
-        if not value.value_id_key in data_values:
+        if value.value_id_key not in data_values:
             # We have a new value
             if value.command_class not in [
                 "COMMAND_CLASS_CONFIGURATION",
