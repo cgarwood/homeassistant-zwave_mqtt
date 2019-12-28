@@ -39,7 +39,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([sensor])
 
     async_dispatcher_connect(hass, "zwave_new_sensor", async_add_sensor)
-    _LOGGER.warning("created sensor listener")
 
     return True
 

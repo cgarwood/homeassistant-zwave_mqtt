@@ -30,7 +30,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([binary_sensor])
 
     async_dispatcher_connect(hass, "zwave_new_binary_sensor", async_add_binary_sensor)
-    _LOGGER.warning("created binary_sensor listener")
 
     return True
 

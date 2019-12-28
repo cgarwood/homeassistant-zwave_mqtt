@@ -30,7 +30,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([switch])
 
     async_dispatcher_connect(hass, "zwave_new_switch", async_add_switch)
-    _LOGGER.warning("connected switch listener")
 
     return True
 
