@@ -23,9 +23,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_switch(value):
         """Add Z-Wave Switch."""
-        _value = value["primary"]
-        _LOGGER.info("adding switch from value: %s", _value.__dict__)
-        switch = ZWaveSwitch(_value)
+        _LOGGER.info("adding switch from value: %s", value.__dict__)
+        switch = ZWaveSwitch(value)
 
         async_add_entities([switch])
 
@@ -40,14 +39,14 @@ class ZWaveSwitch(ZWaveDeviceEntity, SwitchDevice):
     @property
     def state(self):
         """Return the state of the switch."""
-        if self._value.value:
+        if self.values.primary.value:
             return STATE_ON
         return STATE_OFF
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        self._value.send_value(True)
+        self.values.primary.send_value(True)
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
-        self._value.send_value(False)
+        self.values.primary.send_value(False)

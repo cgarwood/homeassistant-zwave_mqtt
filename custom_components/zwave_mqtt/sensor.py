@@ -23,18 +23,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_sensor(value):
         """Add Z-Wave Sensor."""
-        _value = value["primary"]
-        _LOGGER.info("adding sensor from value: %s", _value.__dict__)
+        _LOGGER.info("adding sensor from value: %s", value.__dict__)
 
         # Basic Sensor types
-        if isinstance(_value.value, (float, int)):
-            sensor = ZWaveSensor(_value)
-        if isinstance(_value.value, dict):
-            sensor = ZWaveListSensor(_value)
+        if isinstance(value.primary.value, (float, int)):
+            sensor = ZWaveSensor(value)
+        if isinstance(value.primary.value, dict):
+            sensor = ZWaveListSensor(value)
 
         # Specific Sensor Types
-        if _value.command_class == "COMMAND_CLASS_BATTERY":
-            sensor = ZWaveBatterySensor(_value)
+        if value.primary.command_class == "COMMAND_CLASS_BATTERY":
+            sensor = ZWaveBatterySensor(value)
 
         async_add_entities([sensor])
 
@@ -49,17 +48,17 @@ class ZWaveSensor(ZWaveDeviceEntity):
     @property
     def state(self):
         """Return state of the sensor."""
-        return round(self._value.value, 2)
+        return round(self.values.primary.value, 2)
 
     @property
     def unit_of_measurement(self):
         """Return unit of measurement the value is expressed in."""
-        if self._value.units == "C":
+        if self.values.primary.units == "C":
             return TEMP_CELSIUS
-        if self._value.units == "F":
+        if self.values.primary.units == "F":
             return TEMP_FAHRENHEIT
 
-        return self._value.units
+        return self.values.primary.units
 
 
 class ZWaveListSensor(ZWaveDeviceEntity):
@@ -68,8 +67,8 @@ class ZWaveListSensor(ZWaveDeviceEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        values = self._value.value["List"]
-        selected = self._value.value["Selected"]
+        values = self.values.primary.value["List"]
+        selected = self.values.primary.value["Selected"]
         match = self._find(values, "Label", selected)
         return values[match]["Value"]
 

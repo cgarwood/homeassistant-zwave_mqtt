@@ -3,11 +3,10 @@
 import copy
 import logging
 
+from openzwavemqtt.const import EVENT_VALUE_CHANGED
+
 from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import (
-    async_dispatcher_connect,
-    async_dispatcher_send,
-)
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity import Entity
 
 from . import const
@@ -20,12 +19,13 @@ _LOGGER = logging.getLogger(__name__)
 class ZWaveDeviceEntityValues:
     """Manages entity access to the underlying zwave value objects."""
 
-    def __init__(self, hass, schema, primary_value):
+    def __init__(self, hass, options, schema, primary_value):
         """Initialize the values object with the passed entity schema."""
         self._hass = hass
         self._schema = copy.deepcopy(schema)
         self._values = {}
         self._entity = None
+        self._options = options
 
         for name in self._schema[const.DISC_VALUES].keys():
             self._values[name] = None
@@ -99,51 +99,43 @@ class ZWaveDeviceEntityValues:
         )
 
         if component in PLATFORMS:
-            async_dispatcher_send(self._hass, f"zwave_new_{component}", self._values)
+            async_dispatcher_send(self._hass, f"zwave_new_{component}", self)
 
 
 class ZWaveDeviceEntity(Entity):
     """Generic Entity Class for a Z-Wave Device."""
 
-    def __init__(self, value):
+    def __init__(self, values):
         """Initilize a generic Z-Wave device entity."""
-        self._value = value
-
-    async def async_added_to_hass(self):
-        """Call when entity is added."""
-        async_dispatcher_connect(
-            self.hass,
-            f"zwave_value_updated_{self._value.value_id_key}",
-            self.value_changed,
-        )
+        self.values = values
+        self.options = values._options
 
     @callback
     def value_changed(self, value):
         """Call when the value is changed."""
-        self._value = value
-        self.async_schedule_update_ha_state()
+        if value.value_id_key in [v.value_id_key for v in self.values if v]:
+            self.async_schedule_update_ha_state()
+
+    async def async_added_to_hass(self):
+        """Call when entity is added."""
+        self.options.listen(EVENT_VALUE_CHANGED, self.value_changed)
 
     @property
     def device_info(self):
         """Return device information for the device registry."""
         return {
-            "identifiers": {(DOMAIN, self._value.node.node_id)},
-            "name": f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}",
-            "manufacturer": self._value.node.node_manufacturer_name,
-            "model": self._value.node.node_product_name,
+            "identifiers": {(DOMAIN, self.values.primary.node.node_id)},
+            "name": f"{self.values.primary.node.node_manufacturer_name} {self.values.primary.node.node_product_name}",
+            "manufacturer": self.values.primary.node.node_manufacturer_name,
+            "model": self.values.primary.node.node_product_name,
         }
 
     @property
     def name(self):
         """Return the name of the entity."""
-        return f"{self._value.node.node_manufacturer_name} {self._value.node.node_product_name}: {self._value.label}"
-
-    @property
-    def state(self):
-        """Return the state of the entity."""
-        return self._value.value
+        return f"{self.values.primary.node.node_manufacturer_name} {self.values.primary.node.node_product_name}: {self.values.primary.label}"
 
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return f"{self._value.node.id}-{self._value.value_id_key}"
+        return f"{self.values.primary.node.id}-{self.values.primary.value_id_key}"

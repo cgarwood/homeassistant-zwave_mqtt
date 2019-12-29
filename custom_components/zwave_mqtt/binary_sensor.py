@@ -22,9 +22,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_binary_sensor(value):
         """Add Z-Wave Binary Sensor."""
-        _value = value["primary"]
-        _LOGGER.info("adding binary_sensor from value: %s", _value.__dict__)
-        binary_sensor = ZWaveBinarySensor(_value)
+        _LOGGER.info("adding binary_sensor from value: %s", value.__dict__)
+        binary_sensor = ZWaveBinarySensor(value)
 
         async_add_entities([binary_sensor])
 
@@ -39,4 +38,4 @@ class ZWaveBinarySensor(ZWaveDeviceEntity, BinarySensorDevice):
     @property
     def is_on(self):
         """Return if the sensor is on or off."""
-        return self._value.value
+        return self.values.primary.value

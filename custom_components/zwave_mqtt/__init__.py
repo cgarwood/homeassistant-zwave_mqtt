@@ -109,7 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     continue
 
                 _LOGGER.info("schema match.. creating ZWaveDeviceEntityValues")
-                values = ZWaveDeviceEntityValues(hass, schema, value)
+                values = ZWaveDeviceEntityValues(hass, options, schema, value)
                 data_values[value.value_id_key] = values
 
     def value_changed(value):
@@ -119,6 +119,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             value.label,
             value.value,
         )
+
         async_dispatcher_send(hass, f"zwave_value_updated_{value.value_id_key}", value)
 
     # Listen to events for node and value changes
