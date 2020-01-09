@@ -23,7 +23,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_sensor(value):
         """Add Z-Wave Sensor."""
-        _LOGGER.info("adding sensor from value: %s", value.__dict__)
 
         # Basic Sensor types
         if isinstance(value.primary.value, (float, int)):

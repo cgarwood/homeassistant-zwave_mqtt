@@ -22,7 +22,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_binary_sensor(value):
         """Add Z-Wave Binary Sensor."""
-        _LOGGER.info("adding binary_sensor from value: %s", value.__dict__)
         binary_sensor = ZWaveBinarySensor(value)
 
         async_add_entities([binary_sensor])

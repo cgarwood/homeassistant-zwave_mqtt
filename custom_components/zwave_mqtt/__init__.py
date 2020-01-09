@@ -108,7 +108,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                 ):
                     continue
 
-                _LOGGER.info("schema match.. creating ZWaveDeviceEntityValues")
                 values = ZWaveDeviceEntityValues(hass, options, schema, value)
                 data_values[value.value_id_key] = values
 

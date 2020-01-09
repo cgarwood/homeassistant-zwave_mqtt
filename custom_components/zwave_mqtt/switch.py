@@ -23,7 +23,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_switch(value):
         """Add Z-Wave Switch."""
-        _LOGGER.info("adding switch from value: %s", value.__dict__)
         switch = ZWaveSwitch(value)
 
         async_add_entities([switch])
