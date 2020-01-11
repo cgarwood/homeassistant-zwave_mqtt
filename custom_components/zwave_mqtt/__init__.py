@@ -16,7 +16,6 @@ from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
 from .const import DATA_NODES, DATA_VALUES, DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
@@ -65,51 +64,54 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     def node_added(node):
         _LOGGER.info("NODE ADDED: %s - node id %s", node, node.id)
         hass.data[DOMAIN][DATA_NODES][node.id] = node
-        hass.data[DOMAIN][DATA_VALUES][node.id] = {}
+        hass.data[DOMAIN][DATA_VALUES][node.id] = []
 
     def node_changed(node):
         _LOGGER.info("node changed: %s", node)
         hass.data[DOMAIN][DATA_NODES][node.id] = node
 
     def value_added(value):
-        # _LOGGER.info("VALUE ADDED: %s - node %s", value, value.node)
         node = value.node
-        node_id = value.node.id
-        key = node_id
+        node_id = value.node.node_id
 
-        if key not in hass.data[DOMAIN][DATA_VALUES]:
+        # temporary if statement to cut down on number of debug log lines
+        if value.command_class not in [
+            "COMMAND_CLASS_CONFIGURATION",
+            "COMMAND_CLASS_VERSION",
+        ]:
             _LOGGER.debug(
-                "got value changed but node hasnt been created yet. node %s", node_id
+                "Value added: node %s - value label %s - value %s -- id %s -- cc %s",
+                value.node.id,
+                value.label,
+                value.value,
+                value.value_id_key,
+                value.command_class,
             )
+
+        if node_id not in hass.data[DOMAIN][DATA_VALUES]:
+            _LOGGER.warning("Got value added for non-existent node id %s", node_id)
             return
 
-        data_values = hass.data[DOMAIN][DATA_VALUES][key]
-        if value.value_id_key not in data_values:
-            # We have a new value
-            if value.command_class not in [
-                "COMMAND_CLASS_CONFIGURATION",
-                "COMMAND_CLASS_VERSION",
-            ]:
-                _LOGGER.debug(
-                    "tracking new value - node %s - value label %s - value %s -- id %s -- cc %s",
-                    value.node.id,
-                    value.label,
-                    value.value,
-                    value.value_id_key,
-                    value.command_class,
-                )
+        data_values = hass.data[DOMAIN][DATA_VALUES][node_id]
 
-            # Run discovery on it and see if any entities need created
-            for schema in DISCOVERY_SCHEMAS:
-                if not check_node_schema(node, schema):
-                    continue
-                if not check_value_schema(
-                    value, schema[const.DISC_VALUES][const.DISC_PRIMARY]
-                ):
-                    continue
+        # Check if this value should be tracked by an existing entity
+        for values in data_values:
+            values.check_value(value)
 
-                values = ZWaveDeviceEntityValues(hass, options, schema, value)
-                data_values[value.value_id_key] = values
+        # Run discovery on it and see if any entities need created
+        for schema in DISCOVERY_SCHEMAS:
+            if not check_node_schema(node, schema):
+                continue
+            if not check_value_schema(
+                value, schema[const.DISC_VALUES][const.DISC_PRIMARY]
+            ):
+                continue
+
+            values = ZWaveDeviceEntityValues(hass, options, schema, value)
+
+            # We create a new list and update the reference here so that
+            # the list can be safely iterated over in the main thread
+            hass.data[DOMAIN][DATA_VALUES][node_id] = data_values + [values]
 
     def value_changed(value):
         _LOGGER.debug(
@@ -118,8 +120,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             value.label,
             value.value,
         )
-
-        async_dispatcher_send(hass, f"zwave_value_updated_{value.value_id_key}", value)
 
     # Listen to events for node and value changes
     options.listen(EVENT_NODE_ADDED, node_added)
