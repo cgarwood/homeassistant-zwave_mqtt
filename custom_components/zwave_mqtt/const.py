@@ -13,6 +13,9 @@ DATA_VALUES = "values"
 # MQTT Topics
 TOPIC_OPENZWAVE = "OpenZWave"
 
+# Entity Attributes
+ATTR_NODE_ID = "node_id"
+
 # Command Class IDs
 COMMAND_CLASS_ALARM = 113
 COMMAND_CLASS_ANTITHEFT = 93

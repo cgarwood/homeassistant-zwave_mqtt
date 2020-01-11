@@ -131,6 +131,13 @@ class ZWaveDeviceEntity(Entity):
         }
 
     @property
+    def device_state_attributes(self):
+        """Return the device specific state attributes."""
+        attrs = {const.ATTR_NODE_ID: self.values.primary.node.node_id}
+
+        return attrs
+
+    @property
     def name(self):
         """Return the name of the entity."""
         return f"{self.values.primary.node.node_manufacturer_name} {self.values.primary.node.node_product_name}: {self.values.primary.label}"
