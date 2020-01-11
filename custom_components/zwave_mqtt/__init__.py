@@ -16,6 +16,7 @@ from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
 from .const import DATA_NODES, DATA_VALUES, DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
@@ -65,6 +66,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         _LOGGER.info("NODE ADDED: %s - node id %s", node, node.id)
         hass.data[DOMAIN][DATA_NODES][node.id] = node
         hass.data[DOMAIN][DATA_VALUES][node.id] = []
+
+        # Create node statistics sensor
+        async_dispatcher_send(hass, "zwave_new_node_sensor", node)
 
     def node_changed(node):
         _LOGGER.info("node changed: %s", node)

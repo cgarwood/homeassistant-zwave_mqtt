@@ -16,6 +16,13 @@ TOPIC_OPENZWAVE = "OpenZWave"
 # Entity Attributes
 ATTR_NODE_ID = "node_id"
 
+# Node Status Entity Attributes
+ATTR_QUERY_STAGE = "node_query_stage"
+ATTR_AWAKE = "is_awake"
+ATTR_READY = "is_ready"
+ATTR_FAILED = "is_failed"
+ATTR_ZWAVE_PLUS = "is_z_wave_plus"
+
 # Command Class IDs
 COMMAND_CLASS_ALARM = 113
 COMMAND_CLASS_ANTITHEFT = 93
