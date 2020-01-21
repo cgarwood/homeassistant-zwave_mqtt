@@ -79,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_changed(node):
-        _LOGGER.info("node changed: %s", node)
+        _LOGGER.info("NODE CHANGED: %s", node)
         data_nodes[node.id] = node
 
     @callback
@@ -93,7 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             "COMMAND_CLASS_VERSION",
         ]:
             _LOGGER.debug(
-                "Value added: node %s - value label %s - value %s -- id %s -- cc %s",
+                "VALUE ADDED: node %s - value label %s - value %s -- id %s -- cc %s",
                 value.node.id,
                 value.label,
                 value.value,
@@ -125,7 +125,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     @callback
     def async_value_changed(value):
         _LOGGER.debug(
-            "value changed - node %s - value label %s - value %s",
+            "VALUE CHANGED: node %s - value label %s - value %s",
             value.node,
             value.label,
             value.value,

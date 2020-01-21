@@ -1,5 +1,6 @@
 """Helpers for tests."""
 import json
+import logging
 from pathlib import Path
 
 from asynctest import patch
@@ -8,6 +9,8 @@ import pytest
 from homeassistant import config_entries, core
 
 from tests.common import mock_storage
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 @pytest.fixture
