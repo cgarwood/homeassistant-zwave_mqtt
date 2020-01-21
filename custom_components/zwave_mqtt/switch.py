@@ -7,14 +7,10 @@ from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
+from .const import DOMAIN
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Old way of setting up Z-Wave platforms."""
-    pass
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -28,6 +24,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([switch])
 
     async_dispatcher_connect(hass, "zwave_new_switch", async_add_switch)
+
+    await hass.data[DOMAIN][config_entry.entry_id]["mark_platform_loaded"]("switch")
 
     return True
 

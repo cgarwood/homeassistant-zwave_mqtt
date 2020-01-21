@@ -7,14 +7,10 @@ from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
+from .const import DOMAIN
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Old way of setting up Z-Wave platforms."""
-    pass
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -37,6 +33,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([sensor])
 
     async_dispatcher_connect(hass, "zwave_new_sensor", async_add_sensor)
+
+    await hass.data[DOMAIN][config_entry.entry_id]["mark_platform_loaded"]("sensor")
 
     return True
 
@@ -69,6 +67,8 @@ class ZWaveListSensor(ZWaveDeviceEntity):
         values = self.values.primary.value["List"]
         selected = self.values.primary.value["Selected"]
         match = self._find(values, "Label", selected)
+        if match == -1:
+            return None
         return values[match]["Value"]
 
     def _find(self, lst, key, value):

@@ -14,11 +14,10 @@ import voluptuous as vol
 
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EVENT_HOMEASSISTANT_START
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
 from . import const
-from .const import DATA_NODES, DATA_VALUES, DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
+from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
 from .discovery import DISCOVERY_SCHEMAS, check_node_schema, check_value_schema
 from .entity import ZWaveDeviceEntityValues
 
@@ -29,17 +28,36 @@ DATA_DEVICES = "zwave-mqtt-devices"
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
-    """Old method to set up the zwave_mqtt component."""
+    """Initialize basic config of zwave_mqtt component."""
+    hass.data[DOMAIN] = {}
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up zwave_mqtt from a config entry."""
 
-    hass.data[DOMAIN] = {}
-    hass.data[DOMAIN][DATA_NODES] = {}
-    hass.data[DOMAIN][DATA_VALUES] = {}
+    @callback
+    def async_receive_message(msg):
+        manager.receive_message(msg.topic, msg.payload)
 
+    platforms_loaded = []
+
+    async def mark_platform_loaded(platform):
+        platforms_loaded.append(platform)
+
+        if len(platforms_loaded) != len(PLATFORMS):
+            return
+
+        hass.data[DOMAIN][entry.entry_id]["unsubscribe"] = await mqtt.async_subscribe(
+            hass, f"{TOPIC_OPENZWAVE}/#", async_receive_message
+        )
+
+    hass.data[DOMAIN][entry.entry_id] = {"mark_platform_loaded": mark_platform_loaded}
+
+    data_nodes = {}
+    data_values = {}
+
+    @callback
     def send_message(topic, payload):
         _LOGGER.debug("sending message to topic %s", topic)
         mqtt.async_publish(hass, topic, json.dumps(payload))
@@ -47,30 +65,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options = OZWOptions(send_message=send_message, topic_prefix=f"{TOPIC_OPENZWAVE}/")
     manager = OZWManager(options)
 
-    async def receive_message(msg):
-        manager.receive_message(msg.topic, msg.payload)
-
     for component in PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    # Subscribe to topic
-    async def _connect(self):
-        await mqtt.async_subscribe(hass, f"{TOPIC_OPENZWAVE}/#", receive_message)
-
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _connect)
-
-    def node_added(node):
+    @callback
+    def async_node_added(node):
         _LOGGER.info("NODE ADDED: %s - node id %s", node, node.id)
-        hass.data[DOMAIN][DATA_NODES][node.id] = node
-        hass.data[DOMAIN][DATA_VALUES][node.id] = []
+        data_nodes[node.id] = node
+        data_values[node.id] = []
 
-    def node_changed(node):
+    @callback
+    def async_node_changed(node):
         _LOGGER.info("node changed: %s", node)
-        hass.data[DOMAIN][DATA_NODES][node.id] = node
+        data_nodes[node.id] = node
 
-    def value_added(value):
+    @callback
+    def async_value_added(value):
         node = value.node
         node_id = value.node.node_id
 
@@ -88,14 +100,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                 value.command_class,
             )
 
-        if node_id not in hass.data[DOMAIN][DATA_VALUES]:
-            _LOGGER.warning("Got value added for non-existent node id %s", node_id)
-            return
-
-        data_values = hass.data[DOMAIN][DATA_VALUES][node_id]
+        node_data_values = data_values[node_id]
 
         # Check if this value should be tracked by an existing entity
-        for values in data_values:
+        for values in node_data_values:
             values.check_value(value)
 
         # Run discovery on it and see if any entities need created
@@ -111,9 +119,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
             # We create a new list and update the reference here so that
             # the list can be safely iterated over in the main thread
-            hass.data[DOMAIN][DATA_VALUES][node_id] = data_values + [values]
+            data_values[node_id] = node_data_values + [values]
 
-    def value_changed(value):
+    @callback
+    def async_value_changed(value):
         _LOGGER.debug(
             "value changed - node %s - value label %s - value %s",
             value.node,
@@ -122,10 +131,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
 
     # Listen to events for node and value changes
-    options.listen(EVENT_NODE_ADDED, node_added)
-    options.listen(EVENT_VALUE_ADDED, value_added)
-    options.listen(EVENT_NODE_CHANGED, node_changed)
-    options.listen(EVENT_VALUE_CHANGED, value_changed)
+    options.listen(EVENT_NODE_ADDED, async_node_added)
+    options.listen(EVENT_VALUE_ADDED, async_value_added)
+    options.listen(EVENT_NODE_CHANGED, async_node_changed)
+    options.listen(EVENT_VALUE_CHANGED, async_value_changed)
 
     # Register Services
     # def add_node(service_data):
@@ -150,7 +159,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
             ]
         )
     )
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+    if not unload_ok:
+        return False
 
-    return unload_ok
+    hass.data[DOMAIN][entry.entry_id]["unsubscribe"]()
+    hass.data[DOMAIN].pop(entry.entry_id)
+
+    return True
