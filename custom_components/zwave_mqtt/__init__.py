@@ -20,6 +20,7 @@ from . import const
 from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
 from .discovery import DISCOVERY_SCHEMAS, check_node_schema, check_value_schema
 from .entity import ZWaveDeviceEntityValues
+from .services import ZWaveServices
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -137,14 +138,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options.listen(EVENT_VALUE_CHANGED, async_value_changed)
 
     # Register Services
-    # def add_node(service_data):
-    #    manager.get_instance("1").add_node(False)
-
-    # def cancel_command(service_data):
-    #    manager.get_instance("1").cancel_command()
-
-    # hass.services.async_register(DOMAIN, "add_node", add_node)
-    # hass.services.async_register(DOMAIN, "cancel_command", cancel_command)
+    services = ZWaveServices(hass, manager)
+    services.register()
 
     return True
 

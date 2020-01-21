@@ -11,6 +11,20 @@ TOPIC_OPENZWAVE = "OpenZWave"
 # Entity Attributes
 ATTR_NODE_ID = "node_id"
 
+# Service specific
+SERVICE_ADD_NODE = "add_node"
+SERVICE_REMOVE_NODE = "remove_node"
+SERVICE_REMOVE_FAILED_NODE = "remove_failed_node"
+SERVICE_REPLACE_FAILED_NODE = "replace_failed_node"
+SERVICE_CANCEL_COMMAND = "cancel_command"
+SERVICE_SET_CONFIG_PARAMETER = "set_config_parameter"
+
+ATTR_INSTANCE_ID = "instance_id"
+ATTR_SECURE = "secure"
+ATTR_CONFIG_PARAMETER = "parameter"
+ATTR_CONFIG_VALUE = "value"
+ATTR_CONFIG_SIZE = "size"
+
 # Command Class IDs
 COMMAND_CLASS_ALARM = 113
 COMMAND_CLASS_ANTITHEFT = 93
