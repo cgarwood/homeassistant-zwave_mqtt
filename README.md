@@ -15,6 +15,9 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 ## Contributing
 Contributions are welcome! If you'd like to contribute, feel free to pick up anything on the current [GitHub issues](https://github.com/cgarwood/homeassistant-zwave_mqtt/issues) list!
 
+### Code Formatting
+We try to follow the core Home Assistant style guidelines. Code should be formatted with `black` and imports sorted with `isort`. We have pre-commit hooks to help automate this process. Run `pip install pre-commit` and then `pre-commit install` to install the pre-commit hooks for code formatting.
+
 ## Upstream Resources Used
 - [python-openzwave-mqtt](https://github.com/cgarwood/python-openzwave-mqtt) - Converts qt-openzwave MQTT messages to Python objects and events
 - [qt-openzwave](https://github.com/OpenZWave/qt-openzwave) - OpenZWave MQTT Daemon
