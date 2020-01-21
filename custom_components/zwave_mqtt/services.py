@@ -14,10 +14,11 @@ _LOGGER = logging.getLogger(__name__)
 class ZWaveServices:
     """Class that holds our services ( Zwave Commands) that should be published to hass."""
 
-    def __init__(self, hass, manager):
+    def __init__(self, hass, manager, data_nodes):
         """Initialize with both hass and ozwmanager objects."""
         self._hass = hass
         self._manager = manager
+        self._data_nodes = data_nodes
 
     @callback
     def register(self):
@@ -130,7 +131,7 @@ class ZWaveServices:
     def set_config_parameter(self, service):
         """Set a config parameter to a node."""
         node_id = service.data[const.ATTR_NODE_ID]
-        node = self._hass.data[const.DOMAIN][const.DATA_NODES][node_id]
+        node = self._data_nodes[node_id]
         param = service.data.get(const.ATTR_CONFIG_PARAMETER)
         selection = service.data.get(const.ATTR_CONFIG_VALUE)
         # enumerate values untill we find the param within configuration items
