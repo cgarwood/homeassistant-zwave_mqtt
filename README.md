@@ -10,7 +10,7 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 - See https://github.com/OpenZWave/qt-openzwave/blob/master/docs/MQTT.md for instructions on downloading and configuring the OpenZWave MQTT daemon
 
 ## Limitations
-- Currently only supports binary_sensor, sensor, and switch platforms
+- Currently only supports binary_sensor, sensor, light and switch platforms
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute, feel free to pick up anything on the current [GitHub issues](https://github.com/cgarwood/homeassistant-zwave_mqtt/issues) list!

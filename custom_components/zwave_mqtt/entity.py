@@ -51,11 +51,15 @@ class ZWaveDeviceEntityValues:
 
     def __getattr__(self, name):
         """Get the specified value for this entity."""
-        return self._values[name]
+        return self._values.get(name, None)
 
     def __iter__(self):
         """Allow iteration over all values."""
         return iter(self._values.values())
+
+    def __contains__(self, name):
+        """Check if the specified name/key exists in the values."""
+        return name in self._values
 
     @callback
     def check_value(self, value):
@@ -140,7 +144,6 @@ class ZWaveDeviceEntity(Entity):
 
     def value_added(self):
         """Handle a new value for this entity."""
-        pass
 
     async def async_added_to_hass(self):
         """Call when entity is added."""
@@ -160,9 +163,7 @@ class ZWaveDeviceEntity(Entity):
     @property
     def device_state_attributes(self):
         """Return the device specific state attributes."""
-        attrs = {const.ATTR_NODE_ID: self.values.primary.node.node_id}
-
-        return attrs
+        return {const.ATTR_NODE_ID: self.values.primary.node.node_id}
 
     @property
     def name(self):

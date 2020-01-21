@@ -3,7 +3,7 @@
 __version__ = "0.0.2"
 
 DOMAIN = "zwave_mqtt"
-PLATFORMS = ["binary_sensor", "sensor", "switch"]
+PLATFORMS = ["binary_sensor", "sensor", "switch", "light"]
 
 # MQTT Topics
 TOPIC_OPENZWAVE = "OpenZWave"
@@ -328,8 +328,8 @@ INDEX_DOOR_LOCK_LOCK = 0
 # https://github.com/OpenZWave/open-zwave/blob/67f180eb565f0054f517ff395c71ecd706f6a837/cpp/src/command_classes/Meter.cpp#L114
 # See also:
 # https://github.com/OpenZWave/open-zwave/blob/67f180eb565f0054f517ff395c71ecd706f6a837/cpp/src/command_classes/Meter.cpp#L279
-INDEX_METER_POWER = 8
-INDEX_METER_RESET = 33
+INDEX_METER_POWER = 2
+INDEX_METER_RESET = 257
 
 # https://github.com/OpenZWave/open-zwave/blob/67f180eb565f0054f517ff395c71ecd706f6a837/cpp/src/command_classes/SensorMultilevel.cpp#L50
 INDEX_SENSOR_MULTILEVEL_TEMPERATURE = 1
