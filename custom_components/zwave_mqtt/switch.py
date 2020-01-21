@@ -27,8 +27,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     await hass.data[DOMAIN][config_entry.entry_id]["mark_platform_loaded"]("switch")
 
-    return True
-
 
 class ZWaveSwitch(ZWaveDeviceEntity, SwitchDevice):
     """Representation of a Z-Wave switch."""

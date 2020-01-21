@@ -28,8 +28,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         "binary_sensor"
     )
 
-    return True
-
 
 class ZWaveBinarySensor(ZWaveDeviceEntity, BinarySensorDevice):
     """Representation of a Z-Wave binary_sensor."""
