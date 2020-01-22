@@ -10,6 +10,7 @@ from openzwavemqtt.const import (
     EVENT_VALUE_ADDED,
     EVENT_VALUE_CHANGED,
 )
+from openzwavemqtt.models.value import OZWValue
 import voluptuous as vol
 
 from homeassistant.components import mqtt
@@ -130,6 +131,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             value.label,
             value.value,
         )
+        # Handle a scene activation message
+        if value.command_class in [
+            "COMMAND_CLASS_SCENE_ACTIVATION",
+            "COMMAND_CLASS_CENTRAL_SCENE",
+        ]:
+            handle_scene_activated(hass, value)
+            return
 
     # Listen to events for node and value changes
     options.listen(EVENT_NODE_ADDED, async_node_added)
@@ -161,3 +169,34 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return True
+
+
+@callback
+def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
+    """Handle a (central) scene activation message."""
+    if scene_value.command_class == "COMMAND_CLASS_SCENE_ACTIVATION":
+        # legacy/network scene
+        scene_id = scene_value.value
+        label = scene_value.label
+    else:
+        # central scene command
+        label = scene_value.value["Selected"]
+        for item in scene_value.value["List"]:
+            if item["Label"] == label:
+                scene_id = item["Value"]
+                break
+    _LOGGER.debug(
+        "Scene activated - node: %s - scene_id: %s - label: %s",
+        scene_value.node.id,
+        scene_id,
+        label,
+    )
+    # Simply forward it to the hass event bus
+    hass.bus.async_fire(
+        const.EVENT_SCENE_ACTIVATED,
+        {
+            const.ATTR_NODE_ID: scene_value.node.id,
+            const.ATTR_SCENE_ID: scene_id,
+            const.ATTR_SCENE_LABEL: label,
+        },
+    )
