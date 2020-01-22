@@ -9,8 +9,12 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 - You must have an MQTT server running and the MQTT integration set up in Home Assistant
 - See https://github.com/OpenZWave/qt-openzwave/blob/master/docs/MQTT.md for instructions on downloading and configuring the OpenZWave MQTT daemon
 
-## Limitations
-- Currently only supports binary_sensor, sensor, light and switch platforms
+## Features and Limitations
+- Currently already supports binary_sensor, sensor, and switch platforms
+- Scenes support for both Central scenes and node/network scenes:
+    Will fire HomeAssistant event zwave_mqtt.scene_activated.
+- Light support is currently limited to dimmers only, RGB bulbs are not yet implemented.
+- Other platforms will be added soon!
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute, feel free to pick up anything on the current [GitHub issues](https://github.com/cgarwood/homeassistant-zwave_mqtt/issues) list!

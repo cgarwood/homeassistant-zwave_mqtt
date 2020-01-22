@@ -8,7 +8,7 @@ from unittest.mock import Mock
 from asynctest import patch
 from custom_components.zwave_mqtt.const import DOMAIN
 
-from homeassistant import config_entries
+from homeassistant import config_entries, core as ha
 from homeassistant.helpers import storage
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,3 +98,16 @@ async def setup_zwave(hass, fixture=None):
         await hass.async_block_till_done()
 
     return receive_message
+
+
+def async_capture_events(hass, event_name):
+    """Create a helper that captures events."""
+    events = []
+
+    @ha.callback
+    def capture_events(event):
+        events.append(event)
+
+    hass.bus.async_listen(event_name, capture_events)
+
+    return events

@@ -8,8 +8,15 @@ PLATFORMS = ["binary_sensor", "sensor", "switch", "light"]
 # MQTT Topics
 TOPIC_OPENZWAVE = "OpenZWave"
 
-# Entity Attributes
+# Common Attributes
+ATTR_INSTANCE_ID = "instance_id"
+ATTR_SECURE = "secure"
+ATTR_CONFIG_PARAMETER = "parameter"
+ATTR_CONFIG_VALUE = "value"
+ATTR_CONFIG_SIZE = "size"
 ATTR_NODE_ID = "node_id"
+ATTR_SCENE_ID = "scene_id"
+ATTR_SCENE_LABEL = "scene_label"
 
 # Service specific
 SERVICE_ADD_NODE = "add_node"
@@ -19,11 +26,8 @@ SERVICE_REPLACE_FAILED_NODE = "replace_failed_node"
 SERVICE_CANCEL_COMMAND = "cancel_command"
 SERVICE_SET_CONFIG_PARAMETER = "set_config_parameter"
 
-ATTR_INSTANCE_ID = "instance_id"
-ATTR_SECURE = "secure"
-ATTR_CONFIG_PARAMETER = "parameter"
-ATTR_CONFIG_VALUE = "value"
-ATTR_CONFIG_SIZE = "size"
+# Events
+EVENT_SCENE_ACTIVATED = f"{DOMAIN}.scene_activated"
 
 # Command Class IDs
 COMMAND_CLASS_ALARM = 113
