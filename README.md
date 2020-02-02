@@ -6,8 +6,19 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 **This is an early beta/pre-release and there are still significant limitations**
 
 ## Requirements
-- You must have an MQTT server running and the MQTT integration set up in Home Assistant
-- See https://github.com/OpenZWave/qt-openzwave/blob/master/docs/MQTT.md for instructions on downloading and configuring the OpenZWave MQTT daemon
+- MQTT server and the MQTT integration set up in Home Assistant
+- QT-OpenZwave daemon (https://github.com/OpenZWave/qt-openzwave)
+- Supported Z-wave dongle compatible with OpenZWave 1.6
+
+## Quick start
+- Remove the normal Z-Wave integration from your setup (if present).
+- Install the Mosquittto broker addon and configure MQTT in HomeAssistant integrations page.
+- Make sure you have HACS set-up (https://github.com/custom-components/hacs).
+- Install custom add-on repository to get the OpenZWave daemon: https://github.com/marcelveldt/hassio-addons-repo
+- Install the OpenZWave Daemon add-on repository, configure and start.
+- Carefully check the logs of the daemon if it started successfully!
+- Go to the HomeAssistant integrations page, add Zwave MQTT integration.
+
 
 ## Features and Limitations
 - Currently already supports binary_sensor, sensor, and switch platforms

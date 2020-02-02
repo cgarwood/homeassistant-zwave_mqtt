@@ -83,7 +83,7 @@ class ZwaveDimmer(ZWaveDeviceEntity, Light):
         0x80-0xFE = 1 minute to 127 minutes
         0xFF      = factory default
         """
-        if self.values.dimming_duration.value is None:
+        if self.values.dimming_duration is None:
             if ATTR_TRANSITION in kwargs:
                 _LOGGER.debug("Dimming not supported by %s.", self.entity_id)
             return

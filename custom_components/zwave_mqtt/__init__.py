@@ -74,13 +74,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_added(node):
-        _LOGGER.info("NODE ADDED: %s - node id %s", node, node.id)
+        _LOGGER.debug("NODE ADDED: %s - node id %s", node, node.id)
         data_nodes[node.id] = node
         data_values[node.id] = []
 
     @callback
     def async_node_changed(node):
-        _LOGGER.info("NODE CHANGED: %s", node)
+        _LOGGER.debug("NODE CHANGED: %s", node)
         data_nodes[node.id] = node
 
     @callback
