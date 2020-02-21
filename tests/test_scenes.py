@@ -65,6 +65,7 @@ async def test_scenes(hass, sent_messages):
                             {"Value": 3, "Label": "Key Held down"},
                         ],
                         "Selected": "Pressed 1 Time",
+                        "Selected_id": 1,
                     },
                     "Units": "",
                     "Min": 0,

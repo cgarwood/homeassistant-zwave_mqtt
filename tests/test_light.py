@@ -24,8 +24,8 @@ async def test_light(hass, sent_messages):
         },
         blocking=True,
     )
-    assert len(sent_messages) == 2  # seting brightness involves 2 calls (duration)
-    msg = sent_messages[1]
+    assert len(sent_messages) == 1
+    msg = sent_messages[0]
     assert msg["topic"] == "OpenZWave/1/command/setvalue/"
     assert msg["payload"] == {
         "Value": byte_to_zwave_brightness(new_brightness),
@@ -39,7 +39,7 @@ async def test_light(hass, sent_messages):
         {"entity_id": "light.aeotec_limited_zwa002_led_bulb_6_multi_color_level"},
         blocking=True,
     )
-    assert len(sent_messages) == 4
-    msg = sent_messages[3]
+    assert len(sent_messages) == 2
+    msg = sent_messages[1]
     assert msg["topic"] == "OpenZWave/1/command/setvalue/"
     assert msg["payload"] == {"Value": 0, "ValueIDKey": 659128337}

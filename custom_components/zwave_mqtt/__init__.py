@@ -9,6 +9,8 @@ from openzwavemqtt.const import (
     EVENT_NODE_CHANGED,
     EVENT_VALUE_ADDED,
     EVENT_VALUE_CHANGED,
+    CommandClass,
+    ValueType,
 )
 from openzwavemqtt.models.value import OZWValue
 import voluptuous as vol
@@ -90,8 +92,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
         # temporary if statement to cut down on number of debug log lines
         if value.command_class not in [
-            "COMMAND_CLASS_CONFIGURATION",
-            "COMMAND_CLASS_VERSION",
+            CommandClass.CONFIGURATION,
+            CommandClass.VERSION,
         ]:
             _LOGGER.debug(
                 "VALUE ADDED: node %s - value label %s - value %s -- id %s -- cc %s",
@@ -133,8 +135,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
         # Handle a scene activation message
         if value.command_class in [
-            "COMMAND_CLASS_SCENE_ACTIVATION",
-            "COMMAND_CLASS_CENTRAL_SCENE",
+            CommandClass.SCENE_ACTIVATION,
+            CommandClass.CENTRAL_SCENE,
         ]:
             handle_scene_activated(hass, value)
             return
@@ -174,22 +176,23 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 @callback
 def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
     """Handle a (central) scene activation message."""
-    if scene_value.command_class == "COMMAND_CLASS_SCENE_ACTIVATION":
+    if scene_value.command_class == CommandClass.SCENE_ACTIVATION:
         # legacy/network scene
         scene_id = scene_value.value
         label = scene_value.label
     else:
         # central scene command
+        if scene_value.type != ValueType.LIST:
+            return
         label = scene_value.value["Selected"]
-        for item in scene_value.value["List"]:
-            if item["Label"] == label:
-                scene_id = item["Value"]
-                break
+        scene_id = scene_value.value["Selected_id"]
+    scene_index = scene_value.index
     _LOGGER.debug(
-        "Scene activated - node: %s - scene_id: %s - label: %s",
+        "Scene activated - node: %s - scene_id: %s - label: %s - index: %s",
         scene_value.node.id,
         scene_id,
         label,
+        scene_index,
     )
     # Simply forward it to the hass event bus
     hass.bus.async_fire(
@@ -198,5 +201,6 @@ def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
             const.ATTR_NODE_ID: scene_value.node.id,
             const.ATTR_SCENE_ID: scene_id,
             const.ATTR_SCENE_LABEL: label,
+            const.ATTR_SCENE_INDEX: scene_index,
         },
     )

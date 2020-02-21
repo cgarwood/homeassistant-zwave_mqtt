@@ -2,6 +2,8 @@
 
 import logging
 
+from openzwavemqtt.const import CommandClass
+
 from homeassistant.components.sensor import DEVICE_CLASS_BATTERY
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import callback
@@ -27,7 +29,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             sensor = ZWaveListSensor(value)
 
         # Specific Sensor Types
-        if value.primary.command_class == "COMMAND_CLASS_BATTERY":
+        if value.primary.command_class == CommandClass.BATTERY:
             sensor = ZWaveBatterySensor(value)
 
         async_add_entities([sensor])

@@ -78,10 +78,10 @@ class ZwaveDimmer(ZWaveDeviceEntity, Light):
         """Set the transition time for the brightness value.
 
         Zwave Dimming Duration values:
-        0x00      = instant
-        0x01-0x7F = 1 second to 127 seconds
-        0x80-0xFE = 1 minute to 127 minutes
-        0xFF      = factory default
+        0       = instant
+        0-127   = 1 second to 127 seconds
+        128-254 = 1 minute to 127 minutes
+        255     = factory default
         """
         if self.values.dimming_duration is None:
             if ATTR_TRANSITION in kwargs:
@@ -89,21 +89,29 @@ class ZwaveDimmer(ZWaveDeviceEntity, Light):
             return
 
         if ATTR_TRANSITION not in kwargs:
-            self.values.dimming_duration.send_value(0xFF)
-            return
-
-        transition = kwargs[ATTR_TRANSITION]
-        if transition <= 127:
-            self.values.dimming_duration.send_value(int(transition))
-        elif transition > 7620:
-            self.values.dimming_duration.send_value(0xFE)
-            _LOGGER.warning("Transition clipped to 127 minutes for %s.", self.entity_id)
+            # no transition specified by user, use defaults
+            new_value = 255
         else:
-            minutes = int(transition / 60)
-            _LOGGER.debug(
-                "Transition rounded to %d minutes for %s.", minutes, self.entity_id
-            )
-            self.values.dimming_duration.send_value(minutes + 0x7F)
+            # transition specified by user, convert to zwave value
+            transition = kwargs[ATTR_TRANSITION]
+            if transition <= 127:
+                new_value = int(transition)
+            elif transition > 7620:
+                new_value = 254
+                _LOGGER.warning(
+                    "Transition clipped to 127 minutes for %s.", self.entity_id
+                )
+            else:
+                minutes = int(transition / 60)
+                _LOGGER.debug(
+                    "Transition rounded to %d minutes for %s.", minutes, self.entity_id
+                )
+                new_value = minutes + 128
+
+        # only send value if it differs from current
+        # this prevents a command for nothing
+        if self.values.dimming_duration.value != new_value:
+            self.values.dimming_duration.send_value(new_value)
 
     async def async_turn_on(self, **kwargs):
         """Turn the device on."""

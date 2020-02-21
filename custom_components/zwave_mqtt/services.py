@@ -1,6 +1,7 @@
 """Methods and classes related to executing Z-Wave commands and publishing these to hass."""
 import logging
 
+from openzwavemqtt.const import CommandClass, ValueType
 import voluptuous as vol
 
 from homeassistant.core import callback
@@ -138,7 +139,7 @@ class ZWaveServices:
         for value in node.values():
             if value.index != param:
                 continue
-            if value.command_class != "COMMAND_CLASS_CONFIGURATION":
+            if value.command_class != CommandClass.CONFIGURATION:
                 continue
             _LOGGER.info(
                 "Setting config parameter %s on Node %s with selection %s",
@@ -147,13 +148,13 @@ class ZWaveServices:
                 selection,
             )
             # Bool value
-            if value.type == const.TYPE_BOOL:
+            if value.type == ValueType.BOOL:
                 return value.send_value(int(selection == "True"))
             # List value
-            if value.type == const.TYPE_LIST:
+            if value.type == ValueType.LIST:
                 return value.send_value(str(selection))
             # Button
-            if value.type == const.TYPE_BUTTON:
+            if value.type == ValueType.BUTTON:
                 value.send_value(True)
                 value.send_value(False)
                 return

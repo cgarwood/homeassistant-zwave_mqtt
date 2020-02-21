@@ -2,6 +2,8 @@
 
 import logging
 
+from openzwavemqtt.const import CommandClass, ValueGenre, ValueIndex, ValueType
+
 from . import const
 
 _LOGGER = logging.getLogger(__name__)
@@ -10,12 +12,12 @@ DEFAULT_VALUES_SCHEMA = {
     "power": {
         const.DISC_SCHEMAS: [
             {
-                const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SENSOR_MULTILEVEL],
-                const.DISC_INDEX: [const.INDEX_SENSOR_MULTILEVEL_POWER],
+                const.DISC_COMMAND_CLASS: [CommandClass.SENSOR_MULTILEVEL],
+                const.DISC_INDEX: [ValueIndex.SENSOR_MULTILEVEL_POWER],
             },
             {
-                const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_METER],
-                const.DISC_INDEX: [const.INDEX_METER_POWER],
+                const.DISC_COMMAND_CLASS: [CommandClass.METER],
+                const.DISC_INDEX: [ValueIndex.METER_POWER],
             },
         ],
         const.DISC_OPTIONAL: True,
@@ -40,12 +42,12 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SENSOR_BINARY],
-                    const.DISC_TYPE: const.TYPE_BOOL,
-                    const.DISC_GENRE: const.GENRE_USER,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SENSOR_BINARY],
+                    const.DISC_TYPE: ValueType.BOOL,
+                    const.DISC_GENRE: ValueGenre.USER,
                 },
                 "off_delay": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_CONFIGURATION],
+                    const.DISC_COMMAND_CLASS: [CommandClass.CONFIGURATION],
                     const.DISC_INDEX: [9],
                     const.DISC_OPTIONAL: True,
                 },
@@ -62,35 +64,31 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_THERMOSTAT_SETPOINT]
+                    const.DISC_COMMAND_CLASS: [CommandClass.THERMOSTAT_SETPOINT]
                 },
                 "temperature": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SENSOR_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SENSOR_MULTILEVEL_TEMPERATURE],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SENSOR_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SENSOR_MULTILEVEL_TEMPERATURE],
                     const.DISC_OPTIONAL: True,
                 },
                 "mode": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_THERMOSTAT_MODE],
+                    const.DISC_COMMAND_CLASS: [CommandClass.THERMOSTAT_MODE],
                     const.DISC_OPTIONAL: True,
                 },
                 "fan_mode": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_THERMOSTAT_FAN_MODE],
+                    const.DISC_COMMAND_CLASS: [CommandClass.THERMOSTAT_FAN_MODE],
                     const.DISC_OPTIONAL: True,
                 },
                 "operating_state": {
-                    const.DISC_COMMAND_CLASS: [
-                        const.COMMAND_CLASS_THERMOSTAT_OPERATING_STATE
-                    ],
+                    const.DISC_COMMAND_CLASS: [CommandClass.THERMOSTAT_OPERATING_STATE],
                     const.DISC_OPTIONAL: True,
                 },
                 "fan_action": {
-                    const.DISC_COMMAND_CLASS: [
-                        const.COMMAND_CLASS_THERMOSTAT_FAN_ACTION
-                    ],
+                    const.DISC_COMMAND_CLASS: [CommandClass.THERMOSTAT_FAN_STATE],
                     const.DISC_OPTIONAL: True,
                 },
                 "zxt_120_swing_mode": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_CONFIGURATION],
+                    const.DISC_COMMAND_CLASS: [CommandClass.CONFIGURATION],
                     const.DISC_INDEX: [33],
                     const.DISC_OPTIONAL: True,
                 },
@@ -115,17 +113,17 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_GENRE: const.GENRE_USER,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_GENRE: ValueGenre.USER,
                 },
                 "open": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_MULTILEVEL_BRIGHT],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_BRIGHT],
                     const.DISC_OPTIONAL: True,
                 },
                 "close": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_MULTILEVEL_DIM],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_DIM],
                     const.DISC_OPTIONAL: True,
                 },
             },
@@ -149,8 +147,8 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_BINARY],
-                    const.DISC_GENRE: const.GENRE_USER,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_BINARY],
+                    const.DISC_GENRE: ValueGenre.USER,
                 }
             },
         ),
@@ -173,8 +171,8 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_BARRIER_OPERATOR],
-                    const.DISC_INDEX: [const.INDEX_BARRIER_OPERATOR_LABEL],
+                    const.DISC_COMMAND_CLASS: [CommandClass.BARRIER_OPERATOR],
+                    const.DISC_INDEX: [ValueIndex.BARRIER_OPERATOR_LABEL],
                 }
             },
         ),
@@ -187,9 +185,9 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_MULTILEVEL_LEVEL],
-                    const.DISC_TYPE: const.TYPE_BYTE,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_LEVEL],
+                    const.DISC_TYPE: ValueType.BYTE,
                 }
             },
         ),
@@ -209,23 +207,23 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_MULTILEVEL_LEVEL],
-                    const.DISC_TYPE: const.TYPE_BYTE,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_LEVEL],
+                    const.DISC_TYPE: ValueType.BYTE,
                 },
                 "dimming_duration": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_MULTILEVEL],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_MULTILEVEL_DURATION],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_DURATION],
                     const.DISC_OPTIONAL: True,
                 },
                 "color": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_COLOR],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_COLOR_COLOR],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_COLOR],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_COLOR_COLOR],
                     const.DISC_OPTIONAL: True,
                 },
                 "color_channels": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_COLOR],
-                    const.DISC_INDEX: [const.INDEX_SWITCH_COLOR_CHANNELS],
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_COLOR],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_COLOR_CHANNELS],
                     const.DISC_OPTIONAL: True,
                 },
             },
@@ -244,26 +242,26 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_DOOR_LOCK],
-                    const.DISC_INDEX: [const.INDEX_DOOR_LOCK_LOCK],
+                    const.DISC_COMMAND_CLASS: [CommandClass.DOOR_LOCK],
+                    const.DISC_INDEX: [ValueIndex.DOOR_LOCK_LOCK],
                 },
                 "access_control": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_ALARM],
-                    const.DISC_INDEX: [const.INDEX_ALARM_ACCESS_CONTROL],
+                    const.DISC_COMMAND_CLASS: [CommandClass.ALARM],
+                    const.DISC_INDEX: [ValueIndex.ALARM_ACCESS_CONTROL],
                     const.DISC_OPTIONAL: True,
                 },
                 "alarm_type": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_ALARM],
-                    const.DISC_INDEX: [const.INDEX_ALARM_TYPE],
+                    const.DISC_COMMAND_CLASS: [CommandClass.ALARM],
+                    const.DISC_INDEX: [ValueIndex.ALARM_TYPE],
                     const.DISC_OPTIONAL: True,
                 },
                 "alarm_level": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_ALARM],
-                    const.DISC_INDEX: [const.INDEX_ALARM_LEVEL],
+                    const.DISC_COMMAND_CLASS: [CommandClass.ALARM],
+                    const.DISC_INDEX: [ValueIndex.ALARM_LEVEL],
                     const.DISC_OPTIONAL: True,
                 },
                 "v2btze_advanced": {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_CONFIGURATION],
+                    const.DISC_COMMAND_CLASS: [CommandClass.CONFIGURATION],
                     const.DISC_INDEX: [12],
                     const.DISC_OPTIONAL: True,
                 },
@@ -277,14 +275,14 @@ DISCOVERY_SCHEMAS = [
             **{
                 const.DISC_PRIMARY: {
                     const.DISC_COMMAND_CLASS: [
-                        const.COMMAND_CLASS_SENSOR_MULTILEVEL,
-                        const.COMMAND_CLASS_METER,
-                        const.COMMAND_CLASS_ALARM,
-                        const.COMMAND_CLASS_SENSOR_ALARM,
-                        const.COMMAND_CLASS_INDICATOR,
-                        const.COMMAND_CLASS_BATTERY,
+                        CommandClass.SENSOR_MULTILEVEL,
+                        CommandClass.METER,
+                        CommandClass.ALARM,
+                        CommandClass.SENSOR_ALARM,
+                        CommandClass.INDICATOR,
+                        CommandClass.BATTERY,
                     ],
-                    const.DISC_GENRE: const.GENRE_USER,
+                    const.DISC_GENRE: ValueGenre.USER,
                 }
             },
         ),
@@ -310,9 +308,9 @@ DISCOVERY_SCHEMAS = [
             DEFAULT_VALUES_SCHEMA,
             **{
                 const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [const.COMMAND_CLASS_SWITCH_BINARY],
-                    const.DISC_TYPE: const.TYPE_BOOL,
-                    const.DISC_GENRE: const.GENRE_USER,
+                    const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_BINARY],
+                    const.DISC_TYPE: ValueType.BOOL,
+                    const.DISC_GENRE: ValueGenre.USER,
                 }
             },
         ),
@@ -344,9 +342,9 @@ def check_value_schema(value, schema):
         and value.parent.command_class_id not in schema[const.DISC_COMMAND_CLASS]
     ):
         return False
-    if const.DISC_TYPE in schema and value.type not in schema[const.DISC_TYPE]:
+    if const.DISC_TYPE in schema and value.type != schema[const.DISC_TYPE]:
         return False
-    if const.DISC_GENRE in schema and value.genre not in schema[const.DISC_GENRE]:
+    if const.DISC_GENRE in schema and value.genre != schema[const.DISC_GENRE]:
         return False
     if const.DISC_INDEX in schema and value.index not in schema[const.DISC_INDEX]:
         return False
