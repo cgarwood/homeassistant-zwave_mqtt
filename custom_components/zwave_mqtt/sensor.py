@@ -21,16 +21,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_sensor(value):
         """Add Z-Wave Sensor."""
-
-        # Basic Sensor types
-        if isinstance(value.primary.value, (float, int)):
-            sensor = ZWaveSensor(value)
-        if isinstance(value.primary.value, dict):
-            sensor = ZWaveListSensor(value)
-
         # Specific Sensor Types
         if value.primary.command_class == CommandClass.BATTERY:
             sensor = ZWaveBatterySensor(value)
+
+        # Basic Sensor types
+        elif isinstance(value.primary.value, (float, int)):
+            sensor = ZWaveSensor(value)
+
+        elif isinstance(value.primary.value, dict):
+            sensor = ZWaveListSensor(value)
+
+        else:
+            _LOGGER.warning("Sensor not implemented for value %s", value.primary)
+            return
 
         async_add_entities([sensor])
 
