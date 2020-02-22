@@ -17,7 +17,8 @@ ATTR_CONFIG_SIZE = "size"
 ATTR_NODE_ID = "node_id"
 ATTR_SCENE_ID = "scene_id"
 ATTR_SCENE_LABEL = "scene_label"
-ATTR_SCENE_INDEX = "scene_index"
+ATTR_SCENE_VALUE_ID = "scene_value_id"
+ATTR_SCENE_VALUE_LABEL = "scene_value_label"
 
 # Service specific
 SERVICE_ADD_NODE = "add_node"

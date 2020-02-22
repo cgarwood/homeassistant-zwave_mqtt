@@ -176,31 +176,34 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 @callback
 def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
     """Handle a (central) scene activation message."""
+    node_id = scene_value.node.id
+    scene_id = scene_value.index
+    scene_label = scene_value.label
     if scene_value.command_class == CommandClass.SCENE_ACTIVATION:
         # legacy/network scene
-        scene_id = scene_value.value
-        label = scene_value.label
+        scene_value_id = scene_value.value
+        scene_value_label = scene_value.label
     else:
         # central scene command
         if scene_value.type != ValueType.LIST:
             return
-        label = scene_value.value["Selected"]
-        scene_id = scene_value.value["Selected_id"]
-    scene_index = scene_value.index
+        scene_value_label = scene_value.value["Selected"]
+        scene_value_id = scene_value.value["Selected_id"]
+
     _LOGGER.debug(
-        "Scene activated - node: %s - scene_id: %s - label: %s - index: %s",
-        scene_value.node.id,
-        scene_id,
-        label,
-        scene_index,
+        "Scene activated - node: %s - scene: %s - value: %s",
+        node_id,
+        scene_label,
+        scene_value_label,
     )
     # Simply forward it to the hass event bus
     hass.bus.async_fire(
         const.EVENT_SCENE_ACTIVATED,
         {
-            const.ATTR_NODE_ID: scene_value.node.id,
+            const.ATTR_NODE_ID: node_id,
             const.ATTR_SCENE_ID: scene_id,
-            const.ATTR_SCENE_LABEL: label,
-            const.ATTR_SCENE_INDEX: scene_index,
+            const.ATTR_SCENE_LABEL: scene_label,
+            const.ATTR_SCENE_VALUE_ID: scene_value_id,
+            const.ATTR_SCENE_VALUE_LABEL: scene_value_label,
         },
     )

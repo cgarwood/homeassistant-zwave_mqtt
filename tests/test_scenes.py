@@ -48,7 +48,7 @@ async def test_scenes(hass, sent_messages):
         await asyncio.sleep(0.5)
         count += 1
     assert len(events) == 1
-    assert events[0].data["scene_id"] == 16
+    assert events[0].data["scene_value_id"] == 16
 
     # Publish fake central scene event on mqtt
     receive_message(
@@ -96,4 +96,5 @@ async def test_scenes(hass, sent_messages):
         count += 1
     assert len(events) == 2
     assert events[1].data["scene_id"] == 1
-    assert events[1].data["scene_label"] == "Pressed 1 Time"
+    assert events[1].data["scene_label"] == "Scene 1"
+    assert events[1].data["scene_value_label"] == "Pressed 1 Time"
