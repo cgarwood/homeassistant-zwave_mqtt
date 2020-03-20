@@ -1,6 +1,6 @@
 """Constants for the zwave_mqtt integration."""
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 DOMAIN = "zwave_mqtt"
 PLATFORMS = ["binary_sensor", "fan", "sensor", "switch", "light"]
