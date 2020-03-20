@@ -3,7 +3,7 @@
 __version__ = "0.0.5"
 
 DOMAIN = "zwave_mqtt"
-PLATFORMS = ["binary_sensor", "sensor", "switch", "light"]
+PLATFORMS = ["binary_sensor", "fan", "sensor", "switch", "light"]
 
 # MQTT Topics
 TOPIC_OPENZWAVE = "OpenZWave"
