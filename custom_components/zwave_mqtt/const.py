@@ -1,7 +1,7 @@
 """Constants for the zwave_mqtt integration."""
 
 DOMAIN = "zwave_mqtt"
-PLATFORMS = ["binary_sensor", "fan", "sensor", "switch", "light"]
+PLATFORMS = ["binary_sensor", "cover", "fan", "sensor", "switch", "light"]
 
 # MQTT Topics
 TOPIC_OPENZWAVE = "OpenZWave"
@@ -185,3 +185,10 @@ DISC_SCHEMAS = "schemas"
 DISC_SPECIFIC_DEVICE_CLASS = "specific_device_class"
 DISC_TYPE = "type"
 DISC_VALUES = "values"
+
+
+# Manufacturer IDs
+MANUFACTURER_ID_FIBARO = "0x010f"
+
+# Product Types
+PRODUCT_TYPE_FIBARO_FGRM222 = "0x0302"

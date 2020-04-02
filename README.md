@@ -23,7 +23,7 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 9. Go to the HomeAssistant integrations page, add Zwave MQTT integration.
 
 ## Features and Limitations
-- Currently already supports binary_sensor, fan, sensor, and switch platforms
+- Currently already supports binary_sensor, cover, fan, sensor, and switch platforms
 - Scenes support for both Central scenes and node/network scenes:
     Will fire HomeAssistant event zwave_mqtt.scene_activated.
 - Light support is currently limited to dimmers only, RGB bulbs are not yet implemented.

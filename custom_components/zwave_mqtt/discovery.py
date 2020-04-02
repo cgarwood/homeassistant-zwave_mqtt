@@ -114,6 +114,7 @@ DISCOVERY_SCHEMAS = [
             **{
                 const.DISC_PRIMARY: {
                     const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
+                    const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_LEVEL],
                     const.DISC_GENRE: ValueGenre.USER,
                 },
                 "open": {
@@ -124,6 +125,16 @@ DISCOVERY_SCHEMAS = [
                 "close": {
                     const.DISC_COMMAND_CLASS: [CommandClass.SWITCH_MULTILEVEL],
                     const.DISC_INDEX: [ValueIndex.SWITCH_MULTILEVEL_DIM],
+                    const.DISC_OPTIONAL: True,
+                },
+                "fgrm222_slat_position": {
+                    const.DISC_COMMAND_CLASS: [CommandClass.MANUFACTURER_PROPRIETARY],
+                    const.DISC_INDEX: [0],
+                    const.DISC_OPTIONAL: True,
+                },
+                "fgrm222_tilt_position": {
+                    const.DISC_COMMAND_CLASS: [CommandClass.MANUFACTURER_PROPRIETARY],
+                    const.DISC_INDEX: [1],
                     const.DISC_OPTIONAL: True,
                 },
             },
