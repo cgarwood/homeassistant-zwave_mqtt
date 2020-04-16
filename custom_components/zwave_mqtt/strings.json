@@ -1,6 +1,6 @@
 {
+  "title": "Z-Wave over MQTT",
   "config": {
-    "title": "zwave_mqtt",
     "step": {
       "user": {
         "title": "Connect to the device",
