@@ -302,13 +302,7 @@ DISCOVERY_SCHEMAS = [
         const.DISC_COMPONENT: "sensor",
         const.DISC_VALUES: dict(
             DEFAULT_VALUES_SCHEMA,
-            **{
-                const.DISC_PRIMARY: {
-                    const.DISC_COMMAND_CLASS: [
-                        CommandClass.BASIC,
-                    ],
-                }
-            },
+            **{const.DISC_PRIMARY: {const.DISC_COMMAND_CLASS: [CommandClass.BASIC]}},
         ),
     },
     {
