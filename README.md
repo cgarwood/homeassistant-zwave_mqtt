@@ -12,7 +12,8 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 - Supported Z-wave dongle compatible with OpenZWave 1.6 ([list](https://www.home-assistant.io/docs/z-wave/controllers/#supported-z-wave-usb-sticks--hardware-modules))
 
 ## Quick start
-1. Remove the normal Z-Wave integration from your setup (if present).
+1. Remove the current/previous Z-Wave integration from your setup (if present).
+   --> If you had the current/previous Z-Wave integration runninhg, please restart Home Assistant after you remove it.
 2. Install the Mosquittto broker addon and configure MQTT in HomeAssistant integrations page.
 3. Make sure you have HACS set-up (https://github.com/custom-components/hacs).
 4. Install `Z-Wave over MQTT (Pre-Release)` from HACS Integrations Page.
@@ -28,6 +29,7 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
 - Light support is currently limited to dimmers only, RGB bulbs are not yet implemented.
 - Other platforms will be added soon!
 - If you restart the OZW daemon docker/add-on, you need to restart Home Assistant.
+- There is no migration path from the normal/current Z-Wave integration, you will have to reconfigure Home Assistant entities. Your Z-Wave mesh is stored on your stick and will stay intact though, no need to re-add devices.
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute, feel free to pick up anything on the current [GitHub issues](https://github.com/cgarwood/homeassistant-zwave_mqtt/issues) list!
