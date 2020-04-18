@@ -153,12 +153,19 @@ class ZWaveDeviceEntity(Entity):
     def device_info(self):
         """Return device information for the device registry."""
         node = self.values.primary.node
-        return {
+        instance = self.values.primary.instance
+        device_info = {
             "identifiers": {(DOMAIN, node.node_id)},
             "name": f"{node.node_manufacturer_name} {node.node_product_name}",
             "manufacturer": node.node_manufacturer_name,
             "model": node.node_product_name,
         }
+        # split up device with multiple instances into virtual devices for each instance
+        if instance > 1:
+            device_info["identifiers"] = {(DOMAIN, node.node_id, instance)}
+            device_info["name"] += f" - Instance {instance}"
+            device_info["via_device"] = (DOMAIN, node.node_id)
+        return device_info
 
     @property
     def device_state_attributes(self):
