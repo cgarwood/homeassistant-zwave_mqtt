@@ -7,8 +7,10 @@ from openzwavemqtt import OZWManager, OZWOptions
 from openzwavemqtt.const import (
     EVENT_NODE_ADDED,
     EVENT_NODE_CHANGED,
+    EVENT_NODE_REMOVED,
     EVENT_VALUE_ADDED,
     EVENT_VALUE_CHANGED,
+    EVENT_VALUE_REMOVED,
     CommandClass,
     ValueType,
 )
@@ -63,7 +65,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def send_message(topic, payload):
-        _LOGGER.debug("sending message to topic %s", topic)
         mqtt.async_publish(hass, topic, json.dumps(payload))
 
     options = OZWOptions(send_message=send_message, topic_prefix=f"{TOPIC_OPENZWAVE}/")
@@ -76,14 +77,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_added(node):
-        _LOGGER.debug("NODE ADDED: %s - node id %s", node, node.id)
+        _LOGGER.debug("[NODE ADDED] node_id: %s", node.id)
         data_nodes[node.id] = node
         data_values[node.id] = []
 
     @callback
     def async_node_changed(node):
-        _LOGGER.debug("NODE CHANGED: %s", node)
+        _LOGGER.debug("[NODE CHANGED] node_id: %s", node.id)
         data_nodes[node.id] = node
+
+    @callback
+    def async_node_removed(node):
+        _LOGGER.debug("[NODE REMOVED] node_id: %s", node.id)
 
     @callback
     def async_value_added(value):
@@ -96,7 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             CommandClass.VERSION,
         ]:
             _LOGGER.debug(
-                "VALUE ADDED: node %s - value label %s - value %s -- id %s -- cc %s",
+                "[VALUE ADDED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
                 value.node.id,
                 value.label,
                 value.value,
@@ -128,10 +133,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     @callback
     def async_value_changed(value):
         _LOGGER.debug(
-            "VALUE CHANGED: node %s - value label %s - value %s",
-            value.node,
+            "[VALUE CHANGED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
+            value.node.id,
             value.label,
             value.value,
+            value.value_id_key,
+            value.command_class,
         )
         # Handle a scene activation message
         if value.command_class in [
@@ -141,11 +148,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             handle_scene_activated(hass, value)
             return
 
+    @callback
+    def async_value_removed(value):
+        _LOGGER.debug(
+            "[VALUE REMOVED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
+            value.node.id,
+            value.label,
+            value.value,
+            value.value_id_key,
+            value.command_class,
+        )
+
     # Listen to events for node and value changes
     options.listen(EVENT_NODE_ADDED, async_node_added)
     options.listen(EVENT_VALUE_ADDED, async_value_added)
     options.listen(EVENT_NODE_CHANGED, async_node_changed)
+    options.listen(EVENT_NODE_REMOVED, async_node_removed)
     options.listen(EVENT_VALUE_CHANGED, async_value_changed)
+    options.listen(EVENT_VALUE_REMOVED, async_value_removed)
 
     # Register Services
     services = ZWaveServices(hass, manager, data_nodes)
@@ -191,10 +211,10 @@ def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
         scene_value_id = scene_value.value["Selected_id"]
 
     _LOGGER.debug(
-        "Scene activated - node: %s - scene: %s - value: %s",
+        "[SCENE_ACTIVATED] node_id: %s - scene_id: %s - scene_value_id: %s",
         node_id,
-        scene_label,
-        scene_value_label,
+        scene_id,
+        scene_value_id,
     )
     # Simply forward it to the hass event bus
     hass.bus.async_fire(
