@@ -20,6 +20,7 @@ import voluptuous as vol
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
 from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
@@ -77,9 +78,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_added(node):
+        # Caution: This is also called on (re)start.
         _LOGGER.debug("[NODE ADDED] node_id: %s", node.id)
         data_nodes[node.id] = node
-        data_values[node.id] = []
+        if node.id not in data_values:
+            data_values[node.id] = []
 
     @callback
     def async_node_changed(node):
@@ -88,32 +91,46 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_removed(node):
+        # Caution: This is also called on (re)start.
         _LOGGER.debug("[NODE REMOVED] node_id: %s", node.id)
+        data_nodes.pop(node.id)
+
+    def async_instance_event(message):
+        event = message["event"]
+        event_data = message["data"]
+        _LOGGER.debug("[INSTANCE EVENT]: %s - data: %s", event, event_data)
 
     @callback
     def async_value_added(value):
         node = value.node
         node_id = value.node.node_id
 
-        # temporary if statement to cut down on number of debug log lines
-        if value.command_class not in [
+        # Filter out CommandClasses we're definitely not interested in.
+        if value.command_class in [
             CommandClass.CONFIGURATION,
             CommandClass.VERSION,
+            CommandClass.MANUFACTURER_SPECIFIC,
         ]:
-            _LOGGER.debug(
-                "[VALUE ADDED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
-                value.node.id,
-                value.label,
-                value.value,
-                value.value_id_key,
-                value.command_class,
-            )
+            return
+
+        _LOGGER.debug(
+            "[VALUE ADDED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
+            value.node.id,
+            value.label,
+            value.value,
+            value.value_id_key,
+            value.command_class,
+        )
 
         node_data_values = data_values[node_id]
 
         # Check if this value should be tracked by an existing entity
+        # This may happen during restarts of the daemon.
+        value_unique_id = f"{value.node.id}-{value.value_id_key}"
         for values in node_data_values:
-            values.check_value(value)
+            if values.unique_id == value_unique_id:
+                values.check_value(value)
+                return
 
         # Run discovery on it and see if any entities need created
         for schema in DISCOVERY_SCHEMAS:
@@ -132,6 +149,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_value_changed(value):
+        # if an entity belonging to this value needs updating,
+        # it's handled within the entity logic
         _LOGGER.debug(
             "[VALUE CHANGED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
             value.node.id,
@@ -158,6 +177,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             value.value_id_key,
             value.command_class,
         )
+        # signal all entities using this value for removal
+        value_unique_id = f"{value.node.id}-{value.value_id_key}"
+        async_dispatcher_send(hass, const.SIGNAL_DELETE_ENTITY, value_unique_id)
+        # remove value from our local list
+        node_data_values = data_values[value.node.id]
+        node_data_values[:] = [
+            item for item in node_data_values if item.unique_id != value_unique_id
+        ]
 
     # Listen to events for node and value changes
     options.listen(EVENT_NODE_ADDED, async_node_added)

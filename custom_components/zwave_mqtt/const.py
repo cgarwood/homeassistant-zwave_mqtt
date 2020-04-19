@@ -29,6 +29,9 @@ SERVICE_SET_CONFIG_PARAMETER = "set_config_parameter"
 # Events
 EVENT_SCENE_ACTIVATED = f"{DOMAIN}.scene_activated"
 
+# Signals
+SIGNAL_DELETE_ENTITY = f"{DOMAIN}_delete_entity"
+
 # Discovery Information
 GENERIC_TYPE_WHATEVER = None  # Match ALL
 SPECIFIC_TYPE_WHATEVER = None  # Match ALL
