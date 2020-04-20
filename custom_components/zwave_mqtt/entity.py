@@ -148,7 +148,7 @@ class ZWaveDeviceEntity(Entity):
     def value_changed(self, value):
         """Call when the value is changed."""
         if value.value_id_key in (v.value_id_key for v in self.values if v):
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     @callback
     def value_added(self):
@@ -157,7 +157,7 @@ class ZWaveDeviceEntity(Entity):
     @callback
     def instance_updated(self, new_status):
         """Call when the instance status changes."""
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """Call when entity is added."""

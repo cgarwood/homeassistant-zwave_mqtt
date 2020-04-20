@@ -99,7 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # cleanup device/entity registry if we know this node is permanently deleted
         # entities itself are removed by the values logic
         if node.id in removed_nodes:
-            hass.async_add_job(handle_remove_node(hass, node.id))
+            hass.async_create_task(handle_remove_node(hass, node.id))
 
     def async_instance_event(message):
         event = message["event"]
