@@ -20,6 +20,7 @@ import voluptuous as vol
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import async_get_registry as get_dev_reg
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
@@ -63,6 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     data_nodes = {}
     data_values = {}
+    removed_nodes = []
 
     @callback
     def send_message(topic, payload):
@@ -91,14 +93,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_removed(node):
-        # Caution: This is also called on (re)start.
         _LOGGER.debug("[NODE REMOVED] node_id: %s", node.id)
         data_nodes.pop(node.id)
+        # node added/removed events also happen on (re)starts of hass/mqtt/ozw
+        # cleanup device/entity registry if we know this node is permanently deleted
+        # entities itself are removed by the values logic
+        if node.id in removed_nodes:
+            hass.async_add_job(handle_remove_node(hass, node.id))
 
     def async_instance_event(message):
         event = message["event"]
         event_data = message["data"]
         _LOGGER.debug("[INSTANCE EVENT]: %s - data: %s", event, event_data)
+        # The actual removal action of a Z-Wave node is reported as instance event
+        # Only when this event is detected we cleanup the device and entities from hass
+        if event == "removenode" and "Node" in event_data:
+            removed_nodes.append(event_data["Node"])
 
     @callback
     def async_value_added(value):
@@ -218,6 +228,23 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return True
+
+
+async def handle_remove_node(hass: HomeAssistant, node_id: int):
+    """Handle the removal of a Z-Wave node, removing all traces in device/entity registry."""
+    dev_registry = await get_dev_reg(hass)
+    # grab device in device registry attached to this node
+    device = dev_registry.async_get_device([(DOMAIN, node_id)], [])
+    if device:
+        devices_to_remove = [device.id]
+        # also grab slave devices (node instances)
+        for item in dev_registry.devices.values():
+            if item.via_device_id == device.id:
+                devices_to_remove.append(item.id)
+        # remove all devices in registry related to this node
+        # note: removal of entity registry is handled by core
+        for dev_id in devices_to_remove:
+            dev_registry.async_remove_device(dev_id)
 
 
 @callback
