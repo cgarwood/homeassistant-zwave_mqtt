@@ -20,6 +20,8 @@ import voluptuous as vol
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import async_get_registry as get_dev_reg
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
 from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
@@ -62,6 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     data_nodes = {}
     data_values = {}
+    removed_nodes = []
 
     @callback
     def send_message(topic, payload):
@@ -77,9 +80,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_node_added(node):
+        # Caution: This is also called on (re)start.
         _LOGGER.debug("[NODE ADDED] node_id: %s", node.id)
         data_nodes[node.id] = node
-        data_values[node.id] = []
+        if node.id not in data_values:
+            data_values[node.id] = []
 
     @callback
     def async_node_changed(node):
@@ -89,31 +94,52 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     @callback
     def async_node_removed(node):
         _LOGGER.debug("[NODE REMOVED] node_id: %s", node.id)
+        data_nodes.pop(node.id)
+        # node added/removed events also happen on (re)starts of hass/mqtt/ozw
+        # cleanup device/entity registry if we know this node is permanently deleted
+        # entities itself are removed by the values logic
+        if node.id in removed_nodes:
+            hass.async_create_task(handle_remove_node(hass, node.id))
+
+    def async_instance_event(message):
+        event = message["event"]
+        event_data = message["data"]
+        _LOGGER.debug("[INSTANCE EVENT]: %s - data: %s", event, event_data)
+        # The actual removal action of a Z-Wave node is reported as instance event
+        # Only when this event is detected we cleanup the device and entities from hass
+        if event == "removenode" and "Node" in event_data:
+            removed_nodes.append(event_data["Node"])
 
     @callback
     def async_value_added(value):
         node = value.node
         node_id = value.node.node_id
 
-        # temporary if statement to cut down on number of debug log lines
-        if value.command_class not in [
+        # Filter out CommandClasses we're definitely not interested in.
+        if value.command_class in [
             CommandClass.CONFIGURATION,
             CommandClass.VERSION,
+            CommandClass.MANUFACTURER_SPECIFIC,
         ]:
-            _LOGGER.debug(
-                "[VALUE ADDED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
-                value.node.id,
-                value.label,
-                value.value,
-                value.value_id_key,
-                value.command_class,
-            )
+            return
+
+        _LOGGER.debug(
+            "[VALUE ADDED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
+            value.node.id,
+            value.label,
+            value.value,
+            value.value_id_key,
+            value.command_class,
+        )
 
         node_data_values = data_values[node_id]
 
         # Check if this value should be tracked by an existing entity
+        value_unique_id = f"{value.node.id}-{value.value_id_key}"
         for values in node_data_values:
             values.check_value(value)
+            if values.unique_id == value_unique_id:
+                return  # this value already has an entity
 
         # Run discovery on it and see if any entities need created
         for schema in DISCOVERY_SCHEMAS:
@@ -132,6 +158,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     @callback
     def async_value_changed(value):
+        # if an entity belonging to this value needs updating,
+        # it's handled within the entity logic
         _LOGGER.debug(
             "[VALUE CHANGED] node_id: %s - label: %s - value: %s - value_id: %s - CC: %s",
             value.node.id,
@@ -158,6 +186,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             value.value_id_key,
             value.command_class,
         )
+        # signal all entities using this value for removal
+        value_unique_id = f"{value.node.id}-{value.value_id_key}"
+        async_dispatcher_send(hass, const.SIGNAL_DELETE_ENTITY, value_unique_id)
+        # remove value from our local list
+        node_data_values = data_values[value.node.id]
+        node_data_values[:] = [
+            item for item in node_data_values if item.unique_id != value_unique_id
+        ]
 
     # Listen to events for node and value changes
     options.listen(EVENT_NODE_ADDED, async_node_added)
@@ -191,6 +227,23 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return True
+
+
+async def handle_remove_node(hass: HomeAssistant, node_id: int):
+    """Handle the removal of a Z-Wave node, removing all traces in device/entity registry."""
+    dev_registry = await get_dev_reg(hass)
+    # grab device in device registry attached to this node
+    device = dev_registry.async_get_device([(DOMAIN, node_id)], [])
+    if device:
+        devices_to_remove = [device.id]
+        # also grab slave devices (node instances)
+        for item in dev_registry.devices.values():
+            if item.via_device_id == device.id:
+                devices_to_remove.append(item.id)
+        # remove all devices in registry related to this node
+        # note: removal of entity registry is handled by core
+        for dev_id in devices_to_remove:
+            dev_registry.async_remove_device(dev_id)
 
 
 @callback

@@ -26,8 +26,11 @@ SERVICE_REPLACE_FAILED_NODE = "replace_failed_node"
 SERVICE_CANCEL_COMMAND = "cancel_command"
 SERVICE_SET_CONFIG_PARAMETER = "set_config_parameter"
 
-# Events
+# Home Assistant Events
 EVENT_SCENE_ACTIVATED = f"{DOMAIN}.scene_activated"
+
+# Signals
+SIGNAL_DELETE_ENTITY = f"{DOMAIN}_delete_entity"
 
 # Discovery Information
 GENERIC_TYPE_WHATEVER = None  # Match ALL

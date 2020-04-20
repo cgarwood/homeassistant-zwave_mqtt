@@ -3,10 +3,13 @@
 import copy
 import logging
 
-from openzwavemqtt.const import EVENT_VALUE_CHANGED
+from openzwavemqtt.const import EVENT_INSTANCE_STATUS_CHANGED, EVENT_VALUE_CHANGED
 
 from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
 from homeassistant.helpers.entity import Entity
 
 from . import const
@@ -22,10 +25,9 @@ class ZWaveDeviceEntityValues:
     def __init__(self, hass, options, schema, primary_value):
         """Initialize the values object with the passed entity schema."""
         self._hass = hass
+        self._entity_created = False
         self._schema = copy.deepcopy(schema)
         self._values = {}
-        self._entity = None
-        self._entity_created = False
         self._options = options
 
         # Go through values listed in the discovery schema, initialize them,
@@ -84,8 +86,8 @@ class ZWaveDeviceEntityValues:
             self._values[name] = value
 
             # If the entity has already been created, notify it of the new value.
-            if self._entity:
-                self._entity.value_added()
+            if self._entity_created:
+                async_dispatcher_send(self._hass, f"{self.unique_id}_value_added")
 
             # Check if entity has all required values and create the entity if needed.
             self._check_entity_ready()
@@ -126,6 +128,11 @@ class ZWaveDeviceEntityValues:
         if component in PLATFORMS:
             async_dispatcher_send(self._hass, f"zwave_new_{component}", self)
 
+    @property
+    def unique_id(self):
+        """Identification for this values collection."""
+        return f"{self.primary.node.id}-{self.primary.value_id_key}"
+
 
 class ZWaveDeviceEntity(Entity):
     """Generic Entity Class for a Z-Wave Device."""
@@ -140,14 +147,33 @@ class ZWaveDeviceEntity(Entity):
     def value_changed(self, value):
         """Call when the value is changed."""
         if value.value_id_key in (v.value_id_key for v in self.values if v):
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
+    @callback
     def value_added(self):
         """Handle a new value for this entity."""
 
+    @callback
+    def instance_updated(self, new_status):
+        """Call when the instance status changes."""
+        self.async_write_ha_state()
+
     async def async_added_to_hass(self):
         """Call when entity is added."""
+        # add dispatcher and OZW listeners callbacks,
         self.options.listen(EVENT_VALUE_CHANGED, self.value_changed)
+        self.options.listen(EVENT_INSTANCE_STATUS_CHANGED, self.instance_updated)
+        # add to on_remove so they will be cleaned up on entity removal
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, const.SIGNAL_DELETE_ENTITY, self._delete_callback
+            )
+        )
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, f"{self.unique_id}_value_added", self.value_added
+            )
+        )
 
     @property
     def device_info(self):
@@ -181,4 +207,33 @@ class ZWaveDeviceEntity(Entity):
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return f"{self.values.primary.node.id}-{self.values.primary.value_id_key}"
+        return self.values.unique_id
+
+    @property
+    def available(self) -> bool:
+        """Return entity availability."""
+        # Use OZW Daemon status for availability.
+        instance_status = self.values.primary.ozw_instance.get_status()
+        return instance_status and instance_status.status in [
+            "driverAllNodesQueriedSomeDead",
+            "driverAllNodesQueried",
+            "driverAwakeNodesQueried",
+        ]
+
+    async def _delete_callback(self, values_unique_id):
+        """Remove this entity."""
+        if not self.values:
+            return  # race condition: delete already requested
+        if values_unique_id == self.unique_id:
+            await self.async_remove()
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Call when entity will be removed from hass."""
+        # cleanup OZW listeners
+        self.options.listeners[EVENT_VALUE_CHANGED].remove(self.value_changed)
+        self.options.listeners[EVENT_INSTANCE_STATUS_CHANGED].remove(
+            self.instance_updated
+        )
+        # make sure GC is able to clean up
+        self.options = None
+        self.values = None
