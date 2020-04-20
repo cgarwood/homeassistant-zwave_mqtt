@@ -135,12 +135,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         node_data_values = data_values[node_id]
 
         # Check if this value should be tracked by an existing entity
-        # This may happen during restarts of the daemon.
         value_unique_id = f"{value.node.id}-{value.value_id_key}"
         for values in node_data_values:
+            values.check_value(value)
             if values.unique_id == value_unique_id:
-                values.check_value(value)
-                return
+                return  # this value already has an entity
 
         # Run discovery on it and see if any entities need created
         for schema in DISCOVERY_SCHEMAS:
