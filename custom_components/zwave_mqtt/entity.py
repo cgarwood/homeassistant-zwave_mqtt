@@ -142,7 +142,6 @@ class ZWaveDeviceEntity(Entity):
         self.values = values
         self.options = values._options
         self.values._entity = self
-        self._dispatcher_callbacks = []
 
     @callback
     def value_changed(self, value):
