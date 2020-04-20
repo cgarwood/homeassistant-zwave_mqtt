@@ -161,17 +161,21 @@ class ZWaveDeviceEntity(Entity):
 
     async def async_added_to_hass(self):
         """Call when entity is added."""
+        # add dispatcher and OZW listeners callbacks,
         self.options.listen(EVENT_VALUE_CHANGED, self.value_changed)
         self.options.listen(EVENT_INSTANCE_STATUS_CHANGED, self.instance_updated)
-        # add dispatcher callbacks in a list so we can clean them up again later
-        self._dispatcher_callbacks = [
+        # add to on_remove so they will be cleaned up on entity removal
+        self.async_on_remove(self._onremove_callback)
+        self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, const.SIGNAL_DELETE_ENTITY, self._delete_callback
-            ),
+            )
+        )
+        self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, f"{self.unique_id}_value_added", self.value_added
-            ),
-        ]
+            )
+        )
 
     @property
     def device_info(self):
@@ -225,12 +229,9 @@ class ZWaveDeviceEntity(Entity):
         if values_unique_id == self.unique_id:
             await self.async_remove()
 
-    async def async_will_remove_from_hass(self) -> None:
+    async def _onremove_callback(self) -> None:
         """Call when entity will be removed from hass."""
-        # cleanup dispatcher callbacks
-        for cb in self._dispatcher_callbacks:
-            cb()
-        # cleanup listeners
+        # cleanup OZW listeners
         self.options.listeners[EVENT_VALUE_CHANGED].remove(self.value_changed)
         self.options.listeners[EVENT_INSTANCE_STATUS_CHANGED].remove(
             self.instance_updated
