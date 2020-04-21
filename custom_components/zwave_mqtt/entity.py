@@ -3,7 +3,11 @@
 import copy
 import logging
 
-from openzwavemqtt.const import EVENT_INSTANCE_STATUS_CHANGED, EVENT_VALUE_CHANGED
+from openzwavemqtt.const import (
+    EVENT_INSTANCE_STATUS_CHANGED,
+    EVENT_VALUE_CHANGED,
+    CommandClass,
+)
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import (
@@ -141,7 +145,6 @@ class ZWaveDeviceEntity(Entity):
         """Initilize a generic Z-Wave device entity."""
         self.values = values
         self.options = values._options
-        self.values._entity = self
 
     @callback
     def value_changed(self, value):
@@ -220,11 +223,19 @@ class ZWaveDeviceEntity(Entity):
             "driverAwakeNodesQueried",
         ]
 
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # We hide some of the more advanced sensors by default to not overwhelm users
+        if self.values.primary.command_class == CommandClass.BASIC:
+            return False
+        return True
+
     async def _delete_callback(self, values_unique_id):
         """Remove this entity."""
         if not self.values:
             return  # race condition: delete already requested
-        if values_unique_id == self.unique_id:
+        if values_unique_id == self.values.unique_id:
             await self.async_remove()
 
     async def async_will_remove_from_hass(self) -> None:
