@@ -91,7 +91,7 @@ class ZWaveDeviceEntityValues:
 
             # If the entity has already been created, notify it of the new value.
             if self._entity_created:
-                async_dispatcher_send(self._hass, f"{self.unique_id}_value_added")
+                async_dispatcher_send(self._hass, f"{self.values_id}_value_added")
 
             # Check if entity has all required values and create the entity if needed.
             self._check_entity_ready()
@@ -133,7 +133,7 @@ class ZWaveDeviceEntityValues:
             async_dispatcher_send(self._hass, f"zwave_new_{component}", self)
 
     @property
-    def unique_id(self):
+    def values_id(self):
         """Identification for this values collection."""
         return f"{self.primary.node.id}-{self.primary.value_id_key}"
 
@@ -174,7 +174,7 @@ class ZWaveDeviceEntity(Entity):
         )
         self.async_on_remove(
             async_dispatcher_connect(
-                self.hass, f"{self.unique_id}_value_added", self.value_added
+                self.hass, f"{self.values.values_id}_value_added", self.value_added
             )
         )
 
@@ -210,7 +210,7 @@ class ZWaveDeviceEntity(Entity):
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return self.values.unique_id
+        return f"{self.platform}.{self.values.values_id}"
 
     @property
     def available(self) -> bool:
@@ -231,11 +231,11 @@ class ZWaveDeviceEntity(Entity):
             return False
         return True
 
-    async def _delete_callback(self, values_unique_id):
+    async def _delete_callback(self, values_id):
         """Remove this entity."""
         if not self.values:
             return  # race condition: delete already requested
-        if values_unique_id == self.values.unique_id:
+        if values_id == self.values.values_id:
             await self.async_remove()
 
     async def async_will_remove_from_hass(self) -> None:
