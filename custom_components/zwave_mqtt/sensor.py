@@ -68,19 +68,14 @@ class ZWaveListSensor(ZWaveDeviceEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        values = self.values.primary.value["List"]
-        selected = self.values.primary.value["Selected"]
-        match = self._find(values, "Label", selected)
-        if match == -1:
-            return None
-        return values[match]["Value"]
+        # We use the textbased value as it is more userfriendly that the integer
+        return self.values.primary.value["Selected"]
 
-    def _find(self, lst, key, value):
-        """Search list for a value."""
-        for i, dic in enumerate(lst):
-            if dic[key] == value:
-                return i
-        return -1
+    @property
+    def state_attributes(self):
+        """Return the device specific state attributes."""
+        all_values = [item["Label"] for item in self.values.primary.value["List"]]
+        return {"values": all_values}
 
 
 class ZWaveBatterySensor(ZWaveSensor):
