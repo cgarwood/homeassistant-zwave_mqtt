@@ -79,16 +79,6 @@ class ZWaveBinarySensor(ZWaveDeviceEntity, BinarySensorDevice):
         """Return if the sensor is on or off."""
         return self.values.primary.value
 
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        product_name = self.values.primary.node.node_device_type_string
-        if product_name == "Door/Window Detector":
-            return DEVICE_CLASS_DOOR
-        if product_name == "Motion Detector":
-            return DEVICE_CLASS_MOTION
-        return None
-
 
 class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
     """Representation of a ZWaveListSensor translated to binary_sensor."""
@@ -161,12 +151,14 @@ class ZWaveListValueSensor(ZWaveDeviceEntity, BinarySensorDevice):
             if item["Value"] == self._list_value:
                 value_label = item["Label"]
                 break
+        value_label = value_label.split(" on ")[0]  # strip "on location" from name
         return f"{node.node_manufacturer_name} {node.node_product_name}: {value_label}"
 
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return f"{self.values.unique_id}.{self._list_value}"
+        unique_id = super().unique_id
+        return f"{unique_id}.{self._list_value}"
 
     @property
     def is_on(self):

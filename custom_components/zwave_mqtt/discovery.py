@@ -9,8 +9,7 @@ from . import const
 _LOGGER = logging.getLogger(__name__)
 
 DISCOVERY_SCHEMAS = [
-    {
-        # Binary sensors
+    {  # Binary sensors
         const.DISC_COMPONENT: "binary_sensor",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_ENTRY_CONTROL,
@@ -21,6 +20,7 @@ DISCOVERY_SCHEMAS = [
             const.GENERIC_TYPE_SENSOR_MULTILEVEL,
             const.GENERIC_TYPE_SWITCH_MULTILEVEL,
             const.GENERIC_TYPE_THERMOSTAT,
+            const.GENERIC_TYPE_SENSOR_NOTIFICATION,
         ],
         const.DISC_VALUES: {
             const.DISC_PRIMARY: {
@@ -41,6 +41,7 @@ DISCOVERY_SCHEMAS = [
             const.DISC_PRIMARY: {
                 const.DISC_COMMAND_CLASS: [CommandClass.NOTIFICATION],
                 const.DISC_GENRE: ValueGenre.USER,
+                const.DISC_TYPE: [ValueType.BOOL, ValueType.LIST],
             }
         },
     },
@@ -82,8 +83,7 @@ DISCOVERY_SCHEMAS = [
             },
         },
     },
-    {
-        # Rollershutter
+    {  # Rollershutter
         const.DISC_COMPONENT: "cover",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_SWITCH_MULTILEVEL,
@@ -125,8 +125,7 @@ DISCOVERY_SCHEMAS = [
             },
         },
     },
-    {
-        # Garage Door Switch
+    {  # Garage Door Switch
         const.DISC_COMPONENT: "cover",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_SWITCH_MULTILEVEL,
@@ -147,8 +146,7 @@ DISCOVERY_SCHEMAS = [
             }
         },
     },
-    {
-        # Garage Door Barrier
+    {  # Garage Door Barrier
         const.DISC_COMPONENT: "cover",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_SWITCH_MULTILEVEL,
@@ -169,8 +167,7 @@ DISCOVERY_SCHEMAS = [
             }
         },
     },
-    {
-        # Fan
+    {  # Fan
         const.DISC_COMPONENT: "fan",
         const.DISC_GENERIC_DEVICE_CLASS: [const.GENERIC_TYPE_SWITCH_MULTILEVEL],
         const.DISC_SPECIFIC_DEVICE_CLASS: [const.SPECIFIC_TYPE_FAN_SWITCH],
@@ -182,8 +179,7 @@ DISCOVERY_SCHEMAS = [
             }
         },
     },
-    {
-        # Light
+    {  # Light
         const.DISC_COMPONENT: "light",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_SWITCH_MULTILEVEL,
@@ -217,8 +213,7 @@ DISCOVERY_SCHEMAS = [
             },
         },
     },
-    {
-        # Lock
+    {  # Lock
         const.DISC_COMPONENT: "lock",
         const.DISC_GENERIC_DEVICE_CLASS: [const.GENERIC_TYPE_ENTRY_CONTROL],
         const.DISC_SPECIFIC_DEVICE_CLASS: [
@@ -254,8 +249,7 @@ DISCOVERY_SCHEMAS = [
             },
         },
     },
-    {
-        # All other text/numeric sensors
+    {  # All other text/numeric sensors
         const.DISC_COMPONENT: "sensor",
         const.DISC_VALUES: {
             const.DISC_PRIMARY: {
@@ -266,29 +260,20 @@ DISCOVERY_SCHEMAS = [
                     CommandClass.SENSOR_ALARM,
                     CommandClass.INDICATOR,
                     CommandClass.BATTERY,
+                    CommandClass.NOTIFICATION,
+                    CommandClass.BASIC,
                 ],
-                const.DISC_GENRE: ValueGenre.USER,
                 const.DISC_TYPE: [
                     ValueType.DECIMAL,
                     ValueType.INT,
                     ValueType.STRING,
                     ValueType.BYTE,
+                    ValueType.LIST,
                 ],
             }
         },
     },
-    {
-        # Sensor for Basic CommandClass
-        const.DISC_COMPONENT: "sensor",
-        const.DISC_VALUES: {
-            const.DISC_PRIMARY: {
-                const.DISC_COMMAND_CLASS: [CommandClass.BASIC],
-                const.DISC_TYPE: ValueType.BYTE,
-            }
-        },
-    },
-    {
-        # Switch platform
+    {  # Switch platform
         const.DISC_COMPONENT: "switch",
         const.DISC_GENERIC_DEVICE_CLASS: [
             const.GENERIC_TYPE_METER,

@@ -33,11 +33,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         if isinstance(value.primary.value, (float, int)):
             sensor = ZWaveNumericSensor(value)
 
-        # elif isinstance(value.primary.value, dict):
-        #     sensor = ZWaveListSensor(value)
+        elif isinstance(value.primary.value, dict):
+            sensor = ZWaveListSensor(value)
 
         else:
-            _LOGGER.warning("Sensor not implemented for value %s", value.primary)
+            _LOGGER.warning("Sensor not implemented for value %s", value.primary.label)
             return
 
         async_add_entities([sensor])
@@ -99,11 +99,17 @@ class ZWaveListSensor(ZwaveSensorBase):
     @property
     def state(self):
         """Return the state of the sensor."""
-        # We use the textbased value as it is more userfriendly that the integer
-        return self.values.primary.value["Selected"]
+        # We use the id as value for backwards compatability
+        return self.values.primary.value["Selected_id"]
 
     @property
     def state_attributes(self):
         """Return the device specific state attributes."""
-        all_values = [item["Label"] for item in self.values.primary.value["List"]]
-        return {"values": all_values}
+        # add the value's label as property
+        return {"label": self.values.primary.value["Selected"]}
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # these sensors are only here for backwards compatability, disable them by default
+        return False

@@ -138,7 +138,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         value_unique_id = f"{value.node.id}-{value.value_id_key}"
         for values in node_data_values:
             values.check_value(value)
-            if values.unique_id == value_unique_id:
+            if values.values_id == value_unique_id:
                 return  # this value already has an entity
 
         # Run discovery on it and see if any entities need created
@@ -192,7 +192,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # remove value from our local list
         node_data_values = data_values[value.node.id]
         node_data_values[:] = [
-            item for item in node_data_values if item.unique_id != value_unique_id
+            item for item in node_data_values if item.values_id != value_unique_id
         ]
 
     # Listen to events for node and value changes

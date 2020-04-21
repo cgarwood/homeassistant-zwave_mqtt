@@ -210,7 +210,7 @@ class ZWaveDeviceEntity(Entity):
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return f"{self.platform}.{self.values.values_id}"
+        return f"{self.platform.domain}.{self.values.values_id}"
 
     @property
     def available(self) -> bool:
