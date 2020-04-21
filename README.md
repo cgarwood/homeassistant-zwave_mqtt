@@ -28,7 +28,6 @@ This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-W
     Will fire HomeAssistant event zwave_mqtt.scene_activated.
 - Light support is currently limited to dimmers only, RGB bulbs are not yet implemented.
 - Other platforms will be added soon!
-- If you restart the OZW daemon docker/add-on, you need to restart Home Assistant.
 - There is no migration path from the normal/current Z-Wave integration, you will have to reconfigure Home Assistant entities. Your Z-Wave mesh is stored on your stick and will stay intact though, no need to re-add devices.
 
 ## Contributing
