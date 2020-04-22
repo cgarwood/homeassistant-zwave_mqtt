@@ -155,6 +155,7 @@ class ZWaveListValueSensor(ZWaveDeviceEntity, BinarySensorDevice):
                 value_label = item["Label"]
                 break
         value_label = value_label.split(" on ")[0]  # strip "on location" from name
+        value_label = value_label.split(" at ")[0]  # strip "at location" from name
         return f"{create_device_name(node)}: {value_label}"
 
     @property

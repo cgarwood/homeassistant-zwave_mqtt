@@ -7,16 +7,13 @@ async def test_switch(hass, sent_messages):
     await setup_zwave(hass, "generic_network_dump.csv")
 
     # Test loaded
-    state = hass.states.get("switch.hank_electronics_ltd_hkzw_so01_smart_plug_switch")
+    state = hass.states.get("switch.smart_plug_switch")
     assert state is not None
     assert state.state == "off"
 
     # Test turning on
     await hass.services.async_call(
-        "switch",
-        "turn_on",
-        {"entity_id": "switch.hank_electronics_ltd_hkzw_so01_smart_plug_switch"},
-        blocking=True,
+        "switch", "turn_on", {"entity_id": "switch.smart_plug_switch"}, blocking=True
     )
     assert len(sent_messages) == 1
     msg = sent_messages[0]
@@ -25,10 +22,7 @@ async def test_switch(hass, sent_messages):
 
     # Test turning off
     await hass.services.async_call(
-        "switch",
-        "turn_off",
-        {"entity_id": "switch.hank_electronics_ltd_hkzw_so01_smart_plug_switch"},
-        blocking=True,
+        "switch", "turn_off", {"entity_id": "switch.smart_plug_switch"}, blocking=True
     )
     assert len(sent_messages) == 2
     msg = sent_messages[1]

@@ -9,7 +9,7 @@ async def test_light(hass, sent_messages):
     await setup_zwave(hass, "generic_network_dump.csv")
 
     # Test loaded
-    state = hass.states.get("light.aeotec_limited_zwa002_led_bulb_6_multi_color_level")
+    state = hass.states.get("light.led_bulb_6_multi_colour_level")
     assert state is not None
     assert state.state == "off"
 
@@ -19,7 +19,7 @@ async def test_light(hass, sent_messages):
         "light",
         "turn_on",
         {
-            "entity_id": "light.aeotec_limited_zwa002_led_bulb_6_multi_color_level",
+            "entity_id": "light.led_bulb_6_multi_colour_level",
             "brightness": new_brightness,
         },
         blocking=True,
@@ -36,7 +36,7 @@ async def test_light(hass, sent_messages):
     await hass.services.async_call(
         "light",
         "turn_off",
-        {"entity_id": "light.aeotec_limited_zwa002_led_bulb_6_multi_color_level"},
+        {"entity_id": "light.led_bulb_6_multi_colour_level"},
         blocking=True,
     )
     assert len(sent_messages) == 2

@@ -101,6 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # entities itself are removed by the values logic
         if node.id in removed_nodes:
             hass.async_create_task(handle_remove_node(hass, node.id))
+            removed_nodes.remove(node.id)
 
     @callback
     def async_instance_event(message):
