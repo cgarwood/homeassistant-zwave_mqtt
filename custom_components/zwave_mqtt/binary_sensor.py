@@ -21,7 +21,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from .const import DOMAIN
-from .entity import ZWaveDeviceEntity
+from .entity import ZWaveDeviceEntity, create_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -125,7 +125,7 @@ class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
     @property
     def device_class(self):
         """Return the class of this device, from component DEVICE_CLASSES."""
-        return DEVICE_CLASS_MAPPING.get(self.values.primary.index, None)
+        return DEVICE_CLASS_MAPPING.get(self.values.primary.index)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -155,7 +155,7 @@ class ZWaveListValueSensor(ZWaveDeviceEntity, BinarySensorDevice):
                 value_label = item["Label"]
                 break
         value_label = value_label.split(" on ")[0]  # strip "on location" from name
-        return f"{node.node_manufacturer_name} {node.node_product_name}: {value_label}"
+        return f"{create_device_name(node)}: {value_label}"
 
     @property
     def unique_id(self):
