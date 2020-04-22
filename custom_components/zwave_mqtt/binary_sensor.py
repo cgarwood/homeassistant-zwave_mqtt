@@ -8,7 +8,6 @@ from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_DOOR,
     DEVICE_CLASS_GAS,
     DEVICE_CLASS_HEAT,
-    DEVICE_CLASS_LOCK,
     DEVICE_CLASS_MOISTURE,
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_POWER,
@@ -53,8 +52,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                         ZWaveListValueSensor(values, item["Value"], DEVICE_CLASS_MOTION)
                     )
 
-            # Create a generic binary sensor for all notification topics
-            sensors_to_add.append(ZWaveListSensor(values))
+            # Fallback to a generic binary sensor for the notification topic
+            if not sensors_to_add:
+                sensors_to_add.append(ZWaveListSensor(values))
 
         elif values.primary.type == ValueType.BOOL:
             # classic/legacy binary sensor
@@ -116,7 +116,7 @@ class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
         if self.values.primary.index == 5:
             return DEVICE_CLASS_MOISTURE
         if self.values.primary.index == 6:
-            return DEVICE_CLASS_LOCK
+            return DEVICE_CLASS_SAFETY
         if self.values.primary.index == 7:
             return DEVICE_CLASS_SAFETY
         if self.values.primary.index == 8:
