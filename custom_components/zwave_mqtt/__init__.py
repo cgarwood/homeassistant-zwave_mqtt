@@ -5,6 +5,7 @@ import logging
 
 from openzwavemqtt import OZWManager, OZWOptions
 from openzwavemqtt.const import (
+    EVENT_INSTANCE_EVENT,
     EVENT_NODE_ADDED,
     EVENT_NODE_CHANGED,
     EVENT_NODE_REMOVED,
@@ -101,6 +102,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         if node.id in removed_nodes:
             hass.async_create_task(handle_remove_node(hass, node.id))
 
+    @callback
     def async_instance_event(message):
         event = message["event"]
         event_data = message["data"]
@@ -202,6 +204,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options.listen(EVENT_NODE_REMOVED, async_node_removed)
     options.listen(EVENT_VALUE_CHANGED, async_value_changed)
     options.listen(EVENT_VALUE_REMOVED, async_value_removed)
+    options.listen(EVENT_INSTANCE_EVENT, async_instance_event)
 
     # Register Services
     services = ZWaveServices(hass, manager, data_nodes)
