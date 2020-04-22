@@ -181,7 +181,7 @@ class ZWaveDeviceEntity(Entity):
         instance = self.values.primary.instance
         device_info = {
             "identifiers": {(DOMAIN, node.node_id)},
-            "name": f"{node.node_manufacturer_name} {node.node_product_name}",
+            "name": create_device_name(node),
             "manufacturer": node.node_manufacturer_name,
             "model": node.node_product_name,
         }
@@ -201,12 +201,12 @@ class ZWaveDeviceEntity(Entity):
     def name(self):
         """Return the name of the entity."""
         node = self.values.primary.node
-        return f"{node.node_manufacturer_name} {node.node_product_name}: {self.values.primary.label}"
+        return f"{create_device_name(node)}: {self.values.primary.label}"
 
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return f"{self.platform.domain}.{self.values.values_id}"
+        return f"{DOMAIN}.{self.platform.domain}.{self.values.values_id}"
 
     @property
     def available(self) -> bool:
@@ -236,3 +236,12 @@ class ZWaveDeviceEntity(Entity):
         # make sure GC is able to clean up
         self.options = None
         self.values = None
+
+
+def create_device_name(node):
+    """Generate sensible (short) default device name from a OZWNode."""
+    if node.meta_data["Name"]:
+        dev_name = f'{node.meta_data["Name"]}'
+    else:
+        dev_name = f"{node.node_product_name}"
+    return dev_name
