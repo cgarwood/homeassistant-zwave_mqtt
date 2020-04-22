@@ -98,9 +98,11 @@ class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
         return self.values.primary.value["Selected"] != "Clear"
 
     @property
-    def state_attributes(self):
+    def device_state_attributes(self):
         """Return the device specific state attributes."""
-        return {"event": self.values.primary.value["Selected"]}
+        attributes = super().device_state_attributes
+        attributes["event"] = self.values.primary.value["Selected"]
+        return attributes
 
     @property
     def device_class(self):

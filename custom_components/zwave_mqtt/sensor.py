@@ -115,10 +115,12 @@ class ZWaveListSensor(ZwaveSensorBase):
         return self.values.primary.value["Selected_id"]
 
     @property
-    def state_attributes(self):
+    def device_state_attributes(self):
         """Return the device specific state attributes."""
+        attributes = super().device_state_attributes
         # add the value's label as property
-        return {"label": self.values.primary.value["Selected"]}
+        attributes["label"] = self.values.primary.value["Selected"]
+        return attributes
 
     @property
     def entity_registry_enabled_default(self) -> bool:
