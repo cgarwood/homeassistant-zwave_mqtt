@@ -20,10 +20,7 @@ import voluptuous as vol
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import (
-    async_entries_for_config_entry as devices_for_config_entry,
-    async_get_registry as get_dev_reg,
-)
+from homeassistant.helpers.device_registry import async_get_registry as get_dev_reg
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
@@ -215,13 +212,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-    # cleanup device registry (which will in turn clean entity registry)
-    dev_registry = await get_dev_reg(hass)
-    devices_to_remove = [
-        item.id for item in devices_for_config_entry(dev_registry, entry.unique_id)
-    ]
-    for dev_id in devices_to_remove:
-        dev_registry.async_remove_device(dev_id)
+
     # cleanup platforms
     unload_ok = all(
         await asyncio.gather(
@@ -234,6 +225,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not unload_ok:
         return False
 
+    # unsubscribe mqtt
     hass.data[DOMAIN][entry.entry_id]["unsubscribe"]()
     hass.data[DOMAIN].pop(entry.entry_id)
 
