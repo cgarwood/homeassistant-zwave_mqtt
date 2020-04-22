@@ -39,6 +39,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         if values.primary.type == ValueType.LIST:
 
             # Handle special cases
+            # we convert some of the Notification values into it's own binary sensor
             # https://github.com/OpenZWave/open-zwave/blob/master/config/NotificationCCTypes.xml
             for item in values.primary.value["List"]:
                 if values.primary.index == 6 and item["Value"] == 22:
@@ -52,13 +53,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                         ZWaveListValueSensor(values, item["Value"], DEVICE_CLASS_MOTION)
                     )
 
-            # generic sensor for this CCType
+            # Create a generic binary sensor for all notification topics
             sensors_to_add.append(ZWaveListSensor(values))
 
         elif values.primary.type == ValueType.BOOL:
             # classic/legacy binary sensor
             sensors_to_add.append(ZWaveBinarySensor(values))
         else:
+            # should not happen but just in case log it while we're in beta
             _LOGGER.warning("Sensor not implemented for value %s", values.primary.label)
             return
 
@@ -78,6 +80,13 @@ class ZWaveBinarySensor(ZWaveDeviceEntity, BinarySensorDevice):
     def is_on(self):
         """Return if the sensor is on or off."""
         return self.values.primary.value
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # Legacy binary sensors are phased out (replaced by notification sensors)
+        # Disable by default to not confuse users
+        return False
 
 
 class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
