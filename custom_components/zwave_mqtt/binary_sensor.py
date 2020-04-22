@@ -25,6 +25,23 @@ from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+DEVICE_CLASS_MAPPING = {
+    # Mapping from Value Index in Notification CC to device class
+    1: DEVICE_CLASS_SMOKE,
+    2: DEVICE_CLASS_GAS,
+    3: DEVICE_CLASS_GAS,
+    4: DEVICE_CLASS_HEAT,
+    5: DEVICE_CLASS_MOISTURE,
+    6: DEVICE_CLASS_SAFETY,
+    7: DEVICE_CLASS_SAFETY,
+    8: DEVICE_CLASS_POWER,
+    9: DEVICE_CLASS_PROBLEM,
+    10: DEVICE_CLASS_PROBLEM,
+    14: DEVICE_CLASS_SOUND,
+    15: DEVICE_CLASS_MOISTURE,
+    18: DEVICE_CLASS_GAS,
+}
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up Z-Wave binary_sensor from config entry."""
@@ -40,6 +57,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             # Handle special cases
             # we convert some of the Notification values into it's own binary sensor
             # https://github.com/OpenZWave/open-zwave/blob/master/config/NotificationCCTypes.xml
+            # TODO: Use contants/Enums from lib (when added)
             for item in values.primary.value["List"]:
                 if values.primary.index == 6 and item["Value"] == 22:
                     # Door/Window Open
@@ -107,33 +125,7 @@ class ZWaveListSensor(ZWaveDeviceEntity, BinarySensorDevice):
     @property
     def device_class(self):
         """Return the class of this device, from component DEVICE_CLASSES."""
-        if self.values.primary.index == 1:
-            return DEVICE_CLASS_SMOKE
-        if self.values.primary.index == 2:
-            return DEVICE_CLASS_GAS
-        if self.values.primary.index == 3:
-            return DEVICE_CLASS_GAS
-        if self.values.primary.index == 4:
-            return DEVICE_CLASS_HEAT
-        if self.values.primary.index == 5:
-            return DEVICE_CLASS_MOISTURE
-        if self.values.primary.index == 6:
-            return DEVICE_CLASS_SAFETY
-        if self.values.primary.index == 7:
-            return DEVICE_CLASS_SAFETY
-        if self.values.primary.index == 8:
-            return DEVICE_CLASS_POWER
-        if self.values.primary.index == 9:
-            return DEVICE_CLASS_PROBLEM
-        if self.values.primary.index == 10:
-            return DEVICE_CLASS_PROBLEM
-        if self.values.primary.index == 14:
-            return DEVICE_CLASS_SOUND
-        if self.values.primary.index == 15:
-            return DEVICE_CLASS_MOISTURE
-        if self.values.primary.index == 18:
-            return DEVICE_CLASS_GAS
-        return None
+        return DEVICE_CLASS_MAPPING.get(self.values.primary.index, None)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
