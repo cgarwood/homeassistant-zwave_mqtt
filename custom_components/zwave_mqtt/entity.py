@@ -87,7 +87,7 @@ class ZWaveDeviceEntityValues:
 
             # If the entity has already been created, notify it of the new value.
             if self._entity_created:
-                async_dispatcher_send(self._hass, f"{self.unique_id}_value_added")
+                async_dispatcher_send(self._hass, f"{self.values_id}_value_added")
 
             # Check if entity has all required values and create the entity if needed.
             self._check_entity_ready()
@@ -129,7 +129,7 @@ class ZWaveDeviceEntityValues:
             async_dispatcher_send(self._hass, f"zwave_new_{component}", self)
 
     @property
-    def unique_id(self):
+    def values_id(self):
         """Identification for this values collection."""
         return f"{self.primary.node.id}-{self.primary.value_id_key}"
 
@@ -141,7 +141,6 @@ class ZWaveDeviceEntity(Entity):
         """Initilize a generic Z-Wave device entity."""
         self.values = values
         self.options = values._options
-        self.values._entity = self
 
     @callback
     def value_changed(self, value):
@@ -171,7 +170,7 @@ class ZWaveDeviceEntity(Entity):
         )
         self.async_on_remove(
             async_dispatcher_connect(
-                self.hass, f"{self.unique_id}_value_added", self.value_added
+                self.hass, f"{self.values.values_id}_value_added", self.value_added
             )
         )
 
@@ -179,18 +178,20 @@ class ZWaveDeviceEntity(Entity):
     def device_info(self):
         """Return device information for the device registry."""
         node = self.values.primary.node
-        instance = self.values.primary.instance
+        ozw_instance = node.parent.id
+        node_instance = self.values.primary.instance
+        dev_id = f"{ozw_instance}.{node.node_id}.{node_instance}"
         device_info = {
-            "identifiers": {(DOMAIN, node.node_id)},
-            "name": f"{node.node_manufacturer_name} {node.node_product_name}",
+            "identifiers": {(DOMAIN, dev_id)},
+            "name": create_device_name(node),
             "manufacturer": node.node_manufacturer_name,
             "model": node.node_product_name,
         }
-        # split up device with multiple instances into virtual devices for each instance
-        if instance > 1:
-            device_info["identifiers"] = {(DOMAIN, node.node_id, instance)}
-            device_info["name"] += f" - Instance {instance}"
-            device_info["via_device"] = (DOMAIN, node.node_id)
+        # device with multiple instances is split up into virtual devices for each instance
+        if node_instance > 1:
+            parent_dev_id = f"{ozw_instance}.{node.node_id}.1"
+            device_info["name"] += f" - Instance {node_instance}"
+            device_info["via_device"] = (DOMAIN, parent_dev_id)
         return device_info
 
     @property
@@ -202,12 +203,12 @@ class ZWaveDeviceEntity(Entity):
     def name(self):
         """Return the name of the entity."""
         node = self.values.primary.node
-        return f"{node.node_manufacturer_name} {node.node_product_name}: {self.values.primary.label}"
+        return f"{create_device_name(node)}: {self.values.primary.label}"
 
     @property
     def unique_id(self):
         """Return the unique_id of the entity."""
-        return self.values.unique_id
+        return self.values.values_id
 
     @property
     def available(self) -> bool:
@@ -220,11 +221,11 @@ class ZWaveDeviceEntity(Entity):
             "driverAwakeNodesQueried",
         ]
 
-    async def _delete_callback(self, values_unique_id):
+    async def _delete_callback(self, values_id):
         """Remove this entity."""
         if not self.values:
             return  # race condition: delete already requested
-        if values_unique_id == self.unique_id:
+        if values_id == self.values.values_id:
             await self.async_remove()
 
     async def async_will_remove_from_hass(self) -> None:
@@ -237,3 +238,12 @@ class ZWaveDeviceEntity(Entity):
         # make sure GC is able to clean up
         self.options = None
         self.values = None
+
+
+def create_device_name(node):
+    """Generate sensible (short) default device name from a OZWNode."""
+    if node.meta_data["Name"]:
+        dev_name = f'{node.meta_data["Name"]}'
+    else:
+        dev_name = f"{node.node_product_name}"
+    return dev_name

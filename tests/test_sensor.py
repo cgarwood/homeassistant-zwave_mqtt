@@ -7,14 +7,12 @@ async def test_sensor(hass, sent_messages):
     await setup_zwave(hass, "generic_network_dump.csv")
 
     # Test standard sensor
-    state = hass.states.get(
-        "sensor.hank_electronics_ltd_hkzw_so01_smart_plug_electric_v"
-    )
+    state = hass.states.get("sensor.smart_plug_electric_v")
     assert state is not None
     assert state.state == "123.9"
     assert state.attributes["unit_of_measurement"] == "V"
 
-    # Test list sensor
-    state = hass.states.get("sensor.aeotec_limited_zwa005_trisensor_home_security")
+    # Test list sensor converted to binary sensor
+    state = hass.states.get("binary_sensor.trisensor_motion_detected")
     assert state is not None
-    assert state.state == "0"
+    assert state.state == "off"

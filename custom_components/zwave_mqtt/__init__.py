@@ -5,6 +5,7 @@ import logging
 
 from openzwavemqtt import OZWManager, OZWOptions
 from openzwavemqtt.const import (
+    EVENT_INSTANCE_EVENT,
     EVENT_NODE_ADDED,
     EVENT_NODE_CHANGED,
     EVENT_NODE_REMOVED,
@@ -100,7 +101,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # entities itself are removed by the values logic
         if node.id in removed_nodes:
             hass.async_create_task(handle_remove_node(hass, node.id))
+            removed_nodes.remove(node.id)
 
+    @callback
     def async_instance_event(message):
         event = message["event"]
         event_data = message["data"]
@@ -138,7 +141,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         value_unique_id = f"{value.node.id}-{value.value_id_key}"
         for values in node_data_values:
             values.check_value(value)
-            if values.unique_id == value_unique_id:
+            if values.values_id == value_unique_id:
                 return  # this value already has an entity
 
         # Run discovery on it and see if any entities need created
@@ -192,7 +195,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # remove value from our local list
         node_data_values = data_values[value.node.id]
         node_data_values[:] = [
-            item for item in node_data_values if item.unique_id != value_unique_id
+            item for item in node_data_values if item.values_id != value_unique_id
         ]
 
     # Listen to events for node and value changes
@@ -202,6 +205,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options.listen(EVENT_NODE_REMOVED, async_node_removed)
     options.listen(EVENT_VALUE_CHANGED, async_value_changed)
     options.listen(EVENT_VALUE_REMOVED, async_value_removed)
+    options.listen(EVENT_INSTANCE_EVENT, async_instance_event)
 
     # Register Services
     services = ZWaveServices(hass, manager, data_nodes)
@@ -212,6 +216,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
+
+    # cleanup platforms
     unload_ok = all(
         await asyncio.gather(
             *[
@@ -223,6 +229,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not unload_ok:
         return False
 
+    # unsubscribe mqtt
     hass.data[DOMAIN][entry.entry_id]["unsubscribe"]()
     hass.data[DOMAIN].pop(entry.entry_id)
 

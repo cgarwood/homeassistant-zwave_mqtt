@@ -4,7 +4,14 @@ import logging
 
 from openzwavemqtt.const import CommandClass
 
-from homeassistant.components.sensor import DEVICE_CLASS_BATTERY
+from homeassistant.components.sensor import (
+    DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_HUMIDITY,
+    DEVICE_CLASS_ILLUMINANCE,
+    DEVICE_CLASS_POWER,
+    DEVICE_CLASS_PRESSURE,
+    DEVICE_CLASS_TEMPERATURE,
+)
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -21,19 +28,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_sensor(value):
         """Add Z-Wave Sensor."""
-        # Specific Sensor Types
-        if value.primary.command_class == CommandClass.BATTERY:
-            sensor = ZWaveBatterySensor(value)
 
         # Basic Sensor types
-        elif isinstance(value.primary.value, (float, int)):
-            sensor = ZWaveSensor(value)
+        if isinstance(value.primary.value, (float, int)):
+            sensor = ZWaveNumericSensor(value)
 
         elif isinstance(value.primary.value, dict):
             sensor = ZWaveListSensor(value)
 
         else:
-            _LOGGER.warning("Sensor not implemented for value %s", value.primary)
+            _LOGGER.warning("Sensor not implemented for value %s", value.primary.label)
             return
 
         async_add_entities([sensor])
@@ -43,7 +47,46 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     await hass.data[DOMAIN][config_entry.entry_id]["mark_platform_loaded"]("sensor")
 
 
-class ZWaveSensor(ZWaveDeviceEntity):
+class ZwaveSensorBase(ZWaveDeviceEntity):
+    """Basic Representation of a Z-Wave sensor."""
+
+    @property
+    def device_class(self):
+        """Return the device class of the sensor."""
+        if self.values.primary.command_class == CommandClass.BATTERY:
+            return DEVICE_CLASS_BATTERY
+        if self.values.primary.command_class == CommandClass.METER:
+            return DEVICE_CLASS_POWER
+        if "Temperature" in self.values.primary.label:
+            return DEVICE_CLASS_TEMPERATURE
+        if "Illuminance" in self.values.primary.label:
+            return DEVICE_CLASS_ILLUMINANCE
+        if "Humidity" in self.values.primary.label:
+            return DEVICE_CLASS_HUMIDITY
+        if "Power" in self.values.primary.label:
+            return DEVICE_CLASS_POWER
+        if "Energy" in self.values.primary.label:
+            return DEVICE_CLASS_POWER
+        if "Electric" in self.values.primary.label:
+            return DEVICE_CLASS_POWER
+        if "Pressure" in self.values.primary.label:
+            return DEVICE_CLASS_PRESSURE
+        return None
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # We hide some of the more advanced sensors by default to not overwhelm users
+        if self.values.primary.command_class in [
+            CommandClass.BASIC,
+            CommandClass.INDICATOR,
+            CommandClass.NOTIFICATION,
+        ]:
+            return False
+        return True
+
+
+class ZWaveNumericSensor(ZwaveSensorBase):
     """Representation of a Z-Wave sensor."""
 
     @property
@@ -62,31 +105,25 @@ class ZWaveSensor(ZWaveDeviceEntity):
         return self.values.primary.units
 
 
-class ZWaveListSensor(ZWaveDeviceEntity):
+class ZWaveListSensor(ZwaveSensorBase):
     """Representation of a Z-Wave list sensor."""
 
     @property
     def state(self):
         """Return the state of the sensor."""
-        values = self.values.primary.value["List"]
-        selected = self.values.primary.value["Selected"]
-        match = self._find(values, "Label", selected)
-        if match == -1:
-            return None
-        return values[match]["Value"]
-
-    def _find(self, lst, key, value):
-        """Search list for a value."""
-        for i, dic in enumerate(lst):
-            if dic[key] == value:
-                return i
-        return -1
-
-
-class ZWaveBatterySensor(ZWaveSensor):
-    """Representation of a Z-Wave battery sensor."""
+        # We use the id as value for backwards compatability
+        return self.values.primary.value["Selected_id"]
 
     @property
-    def device_class(self):
-        """Return the device class of the sensor."""
-        return DEVICE_CLASS_BATTERY
+    def device_state_attributes(self):
+        """Return the device specific state attributes."""
+        attributes = super().device_state_attributes
+        # add the value's label as property
+        attributes["label"] = self.values.primary.value["Selected"]
+        return attributes
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # these sensors are only here for backwards compatability, disable them by default
+        return False
