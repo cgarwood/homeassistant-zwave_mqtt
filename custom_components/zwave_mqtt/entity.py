@@ -29,20 +29,20 @@ class ZWaveDeviceEntityValues:
         self._entity_created = False
         self._schema = copy.deepcopy(schema)
         self._values = {}
-        self._options = options
+        self.options = options
 
         # Go through values listed in the discovery schema, initialize them,
         # and add a check to the schema to make sure the Instance matches.
-        for name in self._schema[const.DISC_VALUES].keys():
+        for name, disc_settings in self._schema[const.DISC_VALUES].items():
             self._values[name] = None
-            self._schema[const.DISC_VALUES][name][const.DISC_INSTANCE] = [
-                primary_value.instance
-            ]
+            disc_settings[const.DISC_INSTANCE] = [primary_value.instance]
 
         self._values[const.DISC_PRIMARY] = primary_value
         self._node = primary_value.node
         self._schema[const.DISC_NODE_ID] = [self._node.node_id]
 
+    def setup(self):
+        """Set up values instance."""
         # Check values that have already been discovered for node
         # and see if they match the schema and need added to the entity.
         for value in self._node.values():
@@ -101,10 +101,10 @@ class ZWaveDeviceEntityValues:
             return
 
         # Go through values defined in the schema and abort if a required value is missing.
-        for name in self._schema[const.DISC_VALUES]:
-            if self._values[name] is None and not self._schema[const.DISC_VALUES][
-                name
-            ].get(const.DISC_OPTIONAL):
+        for name, disc_settings in self._schema[const.DISC_VALUES].items():
+            if self._values[name] is None and not disc_settings.get(
+                const.DISC_OPTIONAL
+            ):
                 return
 
         # We have all the required values, so create the entity.
@@ -141,7 +141,7 @@ class ZWaveDeviceEntity(Entity):
     def __init__(self, values):
         """Initilize a generic Z-Wave device entity."""
         self.values = values
-        self.options = values._options
+        self.options = values.options
 
     @callback
     def value_changed(self, value):

@@ -155,6 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                 continue
 
             values = ZWaveDeviceEntityValues(hass, options, schema, value)
+            values.setup()
 
             # We create a new list and update the reference here so that
             # the list can be safely iterated over in the main thread
