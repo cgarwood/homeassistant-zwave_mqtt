@@ -15,6 +15,7 @@ from openzwavemqtt.const import (
     CommandClass,
     ValueType,
 )
+from openzwavemqtt.models.node import OZWNode
 from openzwavemqtt.models.value import OZWValue
 import voluptuous as vol
 
@@ -27,7 +28,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from . import const
 from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
 from .discovery import DISCOVERY_SCHEMAS, check_node_schema, check_value_schema
-from .entity import ZWaveDeviceEntityValues
+from .entity import ZWaveDeviceEntityValues, create_device_id
 from .services import ZWaveServices
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,7 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         # cleanup device/entity registry if we know this node is permanently deleted
         # entities itself are removed by the values logic
         if node.id in removed_nodes:
-            hass.async_create_task(handle_remove_node(hass, node.id))
+            hass.async_create_task(handle_remove_node(hass, node))
             removed_nodes.remove(node.id)
 
     @callback
@@ -236,11 +237,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-async def handle_remove_node(hass: HomeAssistant, node_id: int):
+async def handle_remove_node(hass: HomeAssistant, node: OZWNode):
     """Handle the removal of a Z-Wave node, removing all traces in device/entity registry."""
     dev_registry = await get_dev_reg(hass)
     # grab device in device registry attached to this node
-    device = dev_registry.async_get_device([(DOMAIN, node_id)], [])
+    dev_id = create_device_id(node)
+    device = dev_registry.async_get_device({(DOMAIN, dev_id)}, set())
     if device:
         devices_to_remove = [device.id]
         # also grab slave devices (node instances)

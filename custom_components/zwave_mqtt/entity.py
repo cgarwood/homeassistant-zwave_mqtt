@@ -4,6 +4,7 @@ import copy
 import logging
 
 from openzwavemqtt.const import EVENT_INSTANCE_STATUS_CHANGED, EVENT_VALUE_CHANGED
+from openzwavemqtt.models.node import OZWNode
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import (
@@ -178,9 +179,8 @@ class ZWaveDeviceEntity(Entity):
     def device_info(self):
         """Return device information for the device registry."""
         node = self.values.primary.node
-        ozw_instance = node.parent.id
         node_instance = self.values.primary.instance
-        dev_id = f"{ozw_instance}.{node.node_id}.{node_instance}"
+        dev_id = create_device_id(node, self.values.primary.instance)
         device_info = {
             "identifiers": {(DOMAIN, dev_id)},
             "name": create_device_name(node),
@@ -189,7 +189,7 @@ class ZWaveDeviceEntity(Entity):
         }
         # device with multiple instances is split up into virtual devices for each instance
         if node_instance > 1:
-            parent_dev_id = f"{ozw_instance}.{node.node_id}.1"
+            parent_dev_id = create_device_id(node)
             device_info["name"] += f" - Instance {node_instance}"
             device_info["via_device"] = (DOMAIN, parent_dev_id)
         return device_info
@@ -235,15 +235,19 @@ class ZWaveDeviceEntity(Entity):
         self.options.listeners[EVENT_INSTANCE_STATUS_CHANGED].remove(
             self.instance_updated
         )
-        # make sure GC is able to clean up
-        self.options = None
-        self.values = None
 
 
-def create_device_name(node):
+def create_device_name(node: OZWNode):
     """Generate sensible (short) default device name from a OZWNode."""
     if node.meta_data["Name"]:
         dev_name = f'{node.meta_data["Name"]}'
     else:
         dev_name = f"{node.node_product_name}"
     return dev_name
+
+
+def create_device_id(node: OZWNode, node_instance: int = 1):
+    """Generate unique device_id from a OZWNode."""
+    ozw_instance = node.parent.id
+    dev_id = f"{ozw_instance}.{node.node_id}.{node_instance}"
+    return dev_id
