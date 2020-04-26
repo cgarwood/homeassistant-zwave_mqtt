@@ -1,5 +1,4 @@
 """Support for Z-Wave fans."""
-import logging
 import math
 
 from homeassistant.components.fan import (
@@ -15,8 +14,6 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from .const import DATA_UNSUBSCRIBE, DOMAIN
 from .entity import ZWaveDeviceEntity
-
-_LOGGER = logging.getLogger(__name__)
 
 SPEED_LIST = [SPEED_OFF, SPEED_LOW, SPEED_MEDIUM, SPEED_HIGH]
 
@@ -47,23 +44,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class ZwaveFan(ZWaveDeviceEntity, FanEntity):
     """Representation of a Z-Wave fan."""
 
-    def __init__(self, values):
-        """Initialize the fan."""
-        ZWaveDeviceEntity.__init__(self, values)
-
-    def set_speed(self, speed):
+    async def async_set_speed(self, speed):
         """Set the speed of the fan."""
         self.values.primary.send_value(SPEED_TO_VALUE[speed])
 
-    def turn_on(self, speed=None, **kwargs):
+    async def async_turn_on(self, speed=None, **kwargs):
         """Turn the device on."""
         if speed is None:
             # Value 255 tells device to return to previous value
             self.values.primary.send_value(255)
         else:
-            self.set_speed(speed)
+            await self.async_set_speed(speed)
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the device off."""
         self.values.primary.send_value(0)
 
