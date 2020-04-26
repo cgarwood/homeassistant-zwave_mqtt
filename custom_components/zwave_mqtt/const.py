@@ -1,6 +1,7 @@
 """Constants for the zwave_mqtt integration."""
 
 DOMAIN = "zwave_mqtt"
+DATA_UNSUBSCRIBE = "unsubscribe"
 PLATFORMS = ["binary_sensor", "cover", "fan", "sensor", "switch", "light"]
 
 # MQTT Topics

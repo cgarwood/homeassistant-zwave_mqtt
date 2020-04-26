@@ -26,7 +26,7 @@ from homeassistant.helpers.device_registry import async_get_registry as get_dev_
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import const
-from .const import DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
+from .const import DATA_UNSUBSCRIBE, DOMAIN, PLATFORMS, TOPIC_OPENZWAVE
 from .discovery import DISCOVERY_SCHEMAS, check_node_schema, check_value_schema
 from .entity import ZWaveDeviceEntityValues, create_device_id
 from .services import ZWaveServices
@@ -58,11 +58,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         if len(platforms_loaded) != len(PLATFORMS):
             return
 
-        hass.data[DOMAIN][entry.entry_id]["unsubscribe"] = await mqtt.async_subscribe(
-            hass, f"{TOPIC_OPENZWAVE}/#", async_receive_message
+        hass.data[DOMAIN][entry.entry_id][DATA_UNSUBSCRIBE].append(
+            await mqtt.async_subscribe(
+                hass, f"{TOPIC_OPENZWAVE}/#", async_receive_message
+            )
         )
 
-    hass.data[DOMAIN][entry.entry_id] = {"mark_platform_loaded": mark_platform_loaded}
+    hass.data[DOMAIN][entry.entry_id] = {
+        "mark_platform_loaded": mark_platform_loaded,
+        DATA_UNSUBSCRIBE: [],
+    }
 
     data_nodes = {}
     data_values = {}
@@ -218,7 +223,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-
     # cleanup platforms
     unload_ok = all(
         await asyncio.gather(
@@ -231,8 +235,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not unload_ok:
         return False
 
-    # unsubscribe mqtt
-    hass.data[DOMAIN][entry.entry_id]["unsubscribe"]()
+    # unsubscribe all listeners
+    for unsubscribe_listener in hass.data[DOMAIN][entry.entry_id][DATA_UNSUBSCRIBE]:
+        unsubscribe_listener()
+    hass.data[DOMAIN][entry.entry_id][DATA_UNSUBSCRIBE].clear()
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return True
