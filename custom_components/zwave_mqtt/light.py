@@ -49,12 +49,13 @@ class ZwaveDimmer(ZWaveDeviceEntity, Light):
     def __init__(self, values):
         """Initialize the light."""
         ZWaveDeviceEntity.__init__(self, values)
-        self._supported_features = None
-        self.value_added()
+        self._supported_features = SUPPORT_BRIGHTNESS
+        # make sure that supported features is correctly set
+        self.on_value_update()
 
     @callback
-    def value_added(self):
-        """Call when a new value is added to this entity."""
+    def on_value_update(self):
+        """Call when the underlying value(s) is added or updated."""
         self._supported_features = SUPPORT_BRIGHTNESS
         if self.values.dimming_duration is not None:
             self._supported_features |= SUPPORT_TRANSITION

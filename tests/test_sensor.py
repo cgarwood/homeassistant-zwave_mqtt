@@ -13,6 +13,6 @@ async def test_sensor(hass, sent_messages):
     assert state.attributes["unit_of_measurement"] == "V"
 
     # Test list sensor converted to binary sensor
-    state = hass.states.get("binary_sensor.trisensor_motion_detected")
+    state = hass.states.get("binary_sensor.trisensor_home_security_motion_detected")
     assert state is not None
     assert state.state == "off"
