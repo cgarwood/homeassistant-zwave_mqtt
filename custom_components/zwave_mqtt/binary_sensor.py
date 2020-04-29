@@ -354,12 +354,14 @@ class ZWaveListValueSensor(ZWaveDeviceEntity, BinarySensorDevice):
         off_value=NOTIFICATION_VALUE_CLEAR,
     ):
         """Initialize a ZWaveListValueSensor entity."""
+        super().__init__(values)
         self._on_value = on_value
         self._device_class = device_class
         self._default_enabled = default_enabled
         self._off_value = off_value
+        # make sure the correct value is selected at startup
         self._state = False
-        super().__init__(values)
+        self.on_value_update()
 
     @callback
     def on_value_update(self):
