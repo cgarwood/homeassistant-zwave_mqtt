@@ -3,7 +3,12 @@
 
 This integration allows you to utilize OpenZWave's qt-openzwave to control a Z-Wave network over MQTT. It is currently available as a custom component through HACS and will be submitted as an official Home Assistant component once it has matured a bit.
 
+Some info about differences between previous current Z-Wave implementation, zwave2mqtt etc. can be found here:
+https://community.home-assistant.io/t/update-on-the-z-wave-integration-home-assistant-dev-docs/169045/41
+
+
 **This is an early beta/pre-release and there are still significant limitations**
+
 
 ## Requirements
 
