@@ -57,7 +57,7 @@ DISCOVERY_SCHEMAS = [
             },
             "temperature": {
                 const.DISC_COMMAND_CLASS: [CommandClass.SENSOR_MULTILEVEL],
-                const.DISC_INDEX: [ValueIndex.SENSOR_MULTILEVEL_TEMPERATURE],
+                const.DISC_INDEX: [ValueIndex.SENSOR_MULTILEVEL_AIR_TEMPERATURE],
                 const.DISC_OPTIONAL: True,
             },
             "mode": {

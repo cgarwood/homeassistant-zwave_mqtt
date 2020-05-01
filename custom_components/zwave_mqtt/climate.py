@@ -1,4 +1,5 @@
 """Support for Z-Wave climate devices."""
+from enum import IntEnum
 from typing import Optional, Tuple
 
 from openzwavemqtt.const import CommandClass
@@ -40,23 +41,47 @@ VALUE_SELECTED = "Selected_id"
 
 ATTR_FAN_ACTION = "fan_action"
 
+
+class ThermostatMode(IntEnum):
+    """Enum with all (known/used) Z-Wave ThermostatModes."""
+
+    # https://github.com/OpenZWave/open-zwave/blob/master/cpp/src/command_classes/ThermostatMode.cpp
+    OFF = 0
+    HEAT = 1
+    COOl = 2
+    AUTO = 3
+    AUXILIARY = 4
+    RESUME_ON = 5
+    FAN = 6
+    FURNANCE = 7
+    DRY = 8
+    MOIST = 9
+    AUTO_CHANGE_OVER = 10
+    HEATING_ECON = 11
+    COOLING_ECON = 12
+    AWAY = 13
+    FULL_POWER = 14
+
+
 MODE_SETPOINT_MAPPINGS = {
-    "off": (),
-    "heat": ("setpoint_heating",),
-    "cool": ("setpoint_cooling",),
-    "auto": ("setpoint_heating", "setpoint_cooling"),
-    "aux heat": ("setpoint_heating",),
-    "furnace": ("setpoint_furnace",),
-    "dry air": ("setpoint_dry_air",),
-    "moist air": ("setpoint_moist_air",),
-    "auto changeover": ("setpoint_auto_changeover",),
-    "heat econ": ("setpoint_eco_heating",),
-    "cool econ": ("setpoint_eco_cooling",),
-    "away": ("setpoint_away_heating", "setpoint_away_cooling"),
-    "full power": ("setpoint_full_power",),
+    ThermostatMode.OFF: (),
+    ThermostatMode.HEAT: ("setpoint_heating",),
+    ThermostatMode.COOl: ("setpoint_cooling",),
+    ThermostatMode.AUTO: ("setpoint_heating", "setpoint_cooling"),
+    ThermostatMode.AUXILIARY: ("setpoint_heating",),
+    ThermostatMode.FURNANCE: ("setpoint_furnace",),
+    ThermostatMode.DRY: ("setpoint_dry_air",),
+    ThermostatMode.MOIST: ("setpoint_moist_air",),
+    ThermostatMode.AUTO_CHANGE_OVER: ("setpoint_auto_changeover",),
+    ThermostatMode.HEATING_ECON: ("setpoint_eco_heating",),
+    ThermostatMode.COOLING_ECON: ("setpoint_eco_cooling",),
+    ThermostatMode.AWAY: ("setpoint_away_heating", "setpoint_away_cooling"),
+    ThermostatMode.FULL_POWER: ("setpoint_full_power",),
 }
 
+
 # strings, OZW and/or qt-ozw does not send numeric values
+# https://github.com/OpenZWave/open-zwave/blob/master/cpp/src/command_classes/ThermostatOperatingState.cpp
 HVAC_CURRENT_MAPPINGS = {
     "idle": CURRENT_HVAC_IDLE,
     "heat": CURRENT_HVAC_HEAT,
@@ -80,6 +105,7 @@ DEFAULT_HVAC_MODES = [
     HVAC_MODE_AUTO,
 ]
 
+# Map Z-Wave HVAC Mode to Home Assistant value
 ZW_HVAC_MODE_MAPPINGS = {
     0x00: HVAC_MODE_OFF,
     0x01: HVAC_MODE_HEAT,
@@ -96,6 +122,7 @@ ZW_HVAC_MODE_MAPPINGS = {
     0x0F: HVAC_MODE_HEAT_COOL,
 }
 
+# Map Home Assistant HVAC Mode to Z-Wave value
 HVAC_MODE_ZW_MAPPINGS = {
     HVAC_MODE_OFF: 0x00,
     HVAC_MODE_HEAT: 0x01,
@@ -178,6 +205,8 @@ class ZWaveClimateBase(ZWaveDeviceEntity, ClimateDevice):
         if self._hvac_list and HVAC_MODE_HEAT_COOL in self._hvac_list:
             support |= SUPPORT_TARGET_TEMPERATURE_RANGE
         if self._preset_list and PRESET_AWAY in self._preset_list:
+            support |= SUPPORT_TARGET_TEMPERATURE_RANGE
+        if len(self._current_mode_setpoints()) > 1:
             support |= SUPPORT_TARGET_TEMPERATURE_RANGE
         if self.values.fan_mode:
             support |= SUPPORT_FAN_MODE
@@ -460,6 +489,6 @@ class ZWaveClimateMultipleSetpoint(ZWaveClimateBase):
 
     def _current_mode_setpoints(self) -> Tuple:
         """Return a tuple of current setpoint Z-Wave value(s)."""
-        current_mode = str(self.values.primary.value).lower()
+        current_mode = self.values.primary.value["Selected_id"]
         setpoints_names = MODE_SETPOINT_MAPPINGS.get(current_mode, ())
         return tuple(getattr(self.values, name, None) for name in setpoints_names)
