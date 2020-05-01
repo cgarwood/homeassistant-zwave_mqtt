@@ -17,12 +17,7 @@ from homeassistant.components.cover import (
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .const import (
-    DATA_UNSUBSCRIBE,
-    DOMAIN,
-    MANUFACTURER_ID_FIBARO,
-    PRODUCT_TYPE_FIBARO_FGRM222,
-)
+from .const import DATA_UNSUBSCRIBE, DOMAIN
 from .entity import ZWaveDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +26,9 @@ SUPPORTED_FEATURES_POSITION = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_SET_POSITIO
 SUPPORTED_FEATURES_TILT = (
     SUPPORT_OPEN_TILT | SUPPORT_CLOSE_TILT | SUPPORT_SET_TILT_POSITION
 )
+
+MANUFACTURER_ID_FIBARO = "0x010f"
+PRODUCT_TYPE_FIBARO_FGRM222 = "0x0302"
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
