@@ -1,3 +1,8 @@
+# Notice - Repository Archived
+**This component has been merged into the Home Assistant Core as the OpenZWave/ozw component. Please submit bug reports to the [Home Assistant Core repository](https://github.com/home-assistant/core).**
+
+
+
 # Home Assistant Z-Wave over MQTT Integration (Pre-Release)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
